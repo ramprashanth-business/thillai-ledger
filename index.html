@@ -1022,7 +1022,7 @@ const SEED_ENTRIES = [{"date": "2026-07-07", "desc": "Depoist in ATM", "type": "
   // Get these from: Firebase Console > Project Settings > General
   // > Your apps > SDK setup and configuration.
   // ================================================================
-  const firebaseConfig = {
+ const firebaseConfig = {
   apiKey: "AIzaSyDeD1pi-XzzIND8zTOqzpAfZrctjAW0p_U",
   authDomain: "thillai-ledger.firebaseapp.com",
   projectId: "thillai-ledger",
@@ -1372,6 +1372,7 @@ const SEED_ENTRIES = [{"date": "2026-07-07", "desc": "Depoist in ATM", "type": "
     $$('.type-opt').forEach(el => {
       el.classList.toggle('active', el.dataset.type === activeType);
     });
+    $('.upi-section').style.display = activeType === 'Debit' ? 'block' : 'none';
   }
 
   $$('.type-opt').forEach(el => {
@@ -1424,12 +1425,25 @@ const SEED_ENTRIES = [{"date": "2026-07-07", "desc": "Depoist in ATM", "type": "
   }
 
   // ---------------- UPI deep links ----------------
+  function resolvePayee(raw){
+    const v = raw.trim();
+    if(!v) return { pa: '', ok: true };
+    if(v.includes('@')) return { pa: v, ok: true }; // standard VPA e.g. name@bank
+    const digits = v.replace(/[\s\-()]/g, '').replace(/^\+?91/, '').replace(/^0+/, '');
+    if(/^[6-9]\d{9}$/.test(digits)){
+      // NPCI "UPI Number" lets a 10-digit mobile act as the payee address directly,
+      // but only if that number has been linked as a UPI Number by its owner.
+      return { pa: digits, ok: true, isPhone: true };
+    }
+    return { pa: '', ok: false };
+  }
+
   function buildUpiUrl(scheme){
     const amount = parseFloat($('#f-amount').value) || 0;
     const desc = $('#f-desc').value.trim() || 'Payment';
-    const vpa = $('#f-vpa').value.trim();
+    const payee = resolvePayee($('#f-vpa').value);
     const params = new URLSearchParams();
-    if(vpa) params.set('pa', vpa);
+    if(payee.pa) params.set('pa', payee.pa);
     params.set('pn', 'Thillai Decors');
     if(amount > 0) params.set('am', amount.toFixed(2));
     params.set('cu', 'INR');
@@ -1446,8 +1460,18 @@ const SEED_ENTRIES = [{"date": "2026-07-07", "desc": "Depoist in ATM", "type": "
   $$('.upi-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const app = btn.dataset.app;
+      const payee = resolvePayee($('#f-vpa').value);
+      if(!payee.ok){
+        toast('⚠ Enter a valid UPI ID (name@bank) or 10-digit mobile number');
+        $('#f-vpa').focus();
+        return;
+      }
       window.location.href = buildUpiUrl(app);
-      toast('Opening ' + btn.textContent.trim() + '…');
+      if(payee.isPhone){
+        toast('Opening ' + btn.textContent.trim() + '… (works only if that number is registered as a UPI Number)');
+      } else {
+        toast('Opening ' + btn.textContent.trim() + '…');
+      }
     });
   });
 
