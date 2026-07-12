@@ -599,6 +599,123 @@
   .upi-logo.phonepe{ background:#5F259F; }
   .upi-logo.paytm{ background:#00BAF2; }
 
+  .vpa-input-row{ display:flex; gap:8px; align-items:stretch; }
+  .vpa-input-row input{ flex:1; min-width:0; }
+  .contact-pick-btn{
+    flex:0 0 auto;
+    width:44px;
+    border-radius:12px;
+    border:1.5px solid var(--hairline);
+    background:rgba(244,239,227,0.04);
+    color:var(--marigold-hi);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    transition: all .15s ease;
+  }
+  .contact-pick-btn:active{ transform:scale(0.92); background:rgba(244,239,227,0.09); }
+
+  .recent-payees{
+    display:flex;
+    gap:7px;
+    overflow-x:auto;
+    margin-top:8px;
+    padding-bottom:2px;
+    scrollbar-width:none;
+  }
+  .recent-payees::-webkit-scrollbar{ display:none; }
+  .recent-payees:empty{ display:none; }
+  .payee-chip{
+    flex:0 0 auto;
+    display:flex; align-items:center; gap:6px;
+    padding:6px 12px 6px 6px;
+    border-radius:999px;
+    border:1px solid var(--hairline);
+    background:rgba(244,239,227,0.04);
+    cursor:pointer;
+    font-size:11.5px;
+    color:var(--paper-dim);
+    white-space:nowrap;
+    transition: all .15s ease;
+  }
+  .payee-chip:active{ transform:scale(0.94); background:rgba(244,239,227,0.1); }
+  .payee-chip .avatar{
+    width:22px; height:22px;
+    border-radius:50%;
+    background: linear-gradient(155deg, var(--marigold-hi), var(--brass));
+    color:#1a1a1a;
+    display:flex; align-items:center; justify-content:center;
+    font-size:10.5px;
+    font-weight:800;
+    font-family:'IBM Plex Mono', monospace;
+    flex:0 0 auto;
+  }
+
+  .upi-qr-toggle{
+    display:flex; align-items:center; gap:6px;
+    margin-top:12px;
+    font-size:11.5px;
+    color:var(--marigold-hi);
+    cursor:pointer;
+    width:fit-content;
+  }
+  .upi-qr-toggle svg{ flex:0 0 auto; }
+  .upi-qr-panel{
+    max-height:0;
+    overflow:hidden;
+    transition: max-height .35s cubic-bezier(.22,1,.36,1);
+  }
+  .upi-qr-panel.open{ max-height:340px; }
+  .upi-qr-inner{
+    position:relative;
+    margin-top:14px;
+    padding:18px;
+    border-radius:16px;
+    background: rgba(0,0,0,0.18);
+    border:1px solid var(--hairline);
+    display:flex; flex-direction:column; align-items:center; gap:10px;
+    overflow:hidden;
+  }
+  .upi-qr-glow{
+    position:absolute;
+    inset:-40%;
+    background: conic-gradient(from 0deg, var(--marigold), var(--credit), var(--marigold-hi), var(--brass), var(--marigold));
+    filter: blur(30px);
+    opacity:0.35;
+    animation: ring-spin 8s linear infinite;
+    z-index:0;
+  }
+  @media (prefers-reduced-motion: reduce){ .upi-qr-glow{ animation:none; } }
+  .upi-qr-inner img{
+    position:relative; z-index:1;
+    width:176px; height:176px;
+    border-radius:12px;
+    background:#fff;
+    padding:8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+  }
+  .upi-qr-caption{
+    position:relative; z-index:1;
+    font-size:11px;
+    color:var(--paper-faint);
+    text-align:center;
+  }
+  .upi-copy-btn{
+    position:relative; z-index:1;
+    display:flex; align-items:center; gap:6px;
+    background:rgba(244,239,227,0.06);
+    border:1px solid var(--hairline);
+    color:var(--paper-dim);
+    font-size:11.5px;
+    font-weight:600;
+    padding:8px 14px;
+    border-radius:10px;
+    cursor:pointer;
+    font-family:'Manrope', sans-serif;
+    transition: all .15s ease;
+  }
+  .upi-copy-btn:active{ transform:scale(0.95); background:rgba(244,239,227,0.12); }
+  .upi-copy-btn.copied{ color:var(--credit); border-color:var(--credit); }
+
   /* Toast */
   #toast-container{
     position:fixed;
@@ -971,16 +1088,37 @@
       <input type="date" id="f-date">
     </div>
 
-    <div class="upi-section">
+    <div class="upi-section" id="upi-section">
       <label style="font-family:'IBM Plex Mono', monospace; font-size:10.5px; letter-spacing:0.08em; text-transform:uppercase; color:var(--paper-faint); display:block; margin-bottom:6px;">Quick pay (optional)</label>
       <p class="field-note">Opens the app on your phone to make the payment — you still confirm and log the entry here.</p>
       <div class="field" style="margin-bottom:10px;">
-        <input type="text" id="f-vpa" placeholder="Payee UPI ID or phone (optional)">
+        <div class="vpa-input-row">
+          <input type="text" id="f-vpa" placeholder="Payee UPI ID or phone (optional)">
+          <button type="button" id="contact-pick-btn" class="contact-pick-btn" title="Pick from contacts" style="display:none;">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+          </button>
+        </div>
+        <div class="recent-payees" id="recent-payees"></div>
       </div>
       <div class="upi-btns">
         <div class="upi-btn" data-app="gpay"><div class="upi-logo gpay">G</div>GPay</div>
         <div class="upi-btn" data-app="phonepe"><div class="upi-logo phonepe">P</div>PhonePe</div>
         <div class="upi-btn" data-app="paytm"><div class="upi-logo paytm">P</div>Paytm</div>
+      </div>
+      <div class="upi-qr-toggle" id="upi-qr-toggle">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h3M20 17v3.01"/></svg>
+        <span>App didn't open? Scan QR instead</span>
+      </div>
+      <div class="upi-qr-panel" id="upi-qr-panel">
+        <div class="upi-qr-glow"></div>
+        <div class="upi-qr-inner">
+          <img id="upi-qr-img" alt="UPI QR code" width="176" height="176">
+          <div class="upi-qr-caption" id="upi-qr-caption">Scan with any UPI app</div>
+          <button type="button" class="upi-copy-btn" id="upi-copy-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            Copy payment link
+          </button>
+        </div>
       </div>
     </div>
 
@@ -1022,14 +1160,14 @@ const SEED_ENTRIES = [{"date": "2026-07-07", "desc": "Depoist in ATM", "type": "
   // Get these from: Firebase Console > Project Settings > General
   // > Your apps > SDK setup and configuration.
   // ================================================================
- const firebaseConfig = {
-  apiKey: "AIzaSyDeD1pi-XzzIND8zTOqzpAfZrctjAW0p_U",
-  authDomain: "thillai-ledger.firebaseapp.com",
-  projectId: "thillai-ledger",
-  storageBucket: "thillai-ledger.firebasestorage.app",
-  messagingSenderId: "586660900071",
-  appId: "1:586660900071:web:aa7b7eba1adf373dfd0642"
-};
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT.firebaseapp.com",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_PROJECT.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
+  };
 
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import {
@@ -1353,6 +1491,8 @@ const SEED_ENTRIES = [{"date": "2026-07-07", "desc": "Depoist in ATM", "type": "
     $('#f-date').value = entry ? entry.date : new Date().toISOString().slice(0,10);
     $('#f-vpa').value = entry ? (entry.vpa || '') : '';
     $('#delete-btn').style.display = entry ? 'block' : 'none';
+    $('#upi-qr-panel').classList.remove('open');
+    renderRecentPayees();
 
     updateTypeToggle();
 
@@ -1424,6 +1564,52 @@ const SEED_ENTRIES = [{"date": "2026-07-07", "desc": "Depoist in ATM", "type": "
     }
   }
 
+  // ---------------- Contact book + recent payees ----------------
+  const contactsSupported = !!(navigator.contacts && navigator.contacts.select && window.ContactsManager);
+  if(contactsSupported){ $('#contact-pick-btn').style.display = 'flex'; }
+
+  $('#contact-pick-btn').addEventListener('click', async () => {
+    try{
+      const props = ['tel', 'name'];
+      const contacts = await navigator.contacts.select(props, { multiple: false });
+      if(contacts && contacts.length){
+        const c = contacts[0];
+        const tel = (c.tel && c.tel[0]) ? c.tel[0].replace(/[^\d+]/g, '') : '';
+        if(tel) $('#f-vpa').value = tel;
+        if(!$('#f-desc').value.trim() && c.name && c.name[0]) $('#f-desc').value = c.name[0];
+        if($('#upi-qr-panel').classList.contains('open')) refreshQr();
+      }
+    }catch(e){
+      if(e.name !== 'AbortError') toast('⚠ Could not open contacts');
+    }
+  });
+
+  function renderRecentPayees(){
+    const wrap = $('#recent-payees');
+    wrap.innerHTML = '';
+    const seen = new Set();
+    const recents = [];
+    for(const e of sortedEntries().slice().reverse()){
+      if(!e.vpa || !e.vpa.trim()) continue;
+      const key = e.vpa.trim().toLowerCase();
+      if(seen.has(key)) continue;
+      seen.add(key);
+      recents.push({ vpa: e.vpa.trim(), desc: e.desc || e.vpa });
+      if(recents.length >= 8) break;
+    }
+    recents.forEach(p => {
+      const chip = document.createElement('div');
+      chip.className = 'payee-chip';
+      const initial = (p.desc || '?').trim().charAt(0).toUpperCase() || '?';
+      chip.innerHTML = `<span class="avatar">${initial}</span><span>${escapeHtml(p.desc)}</span>`;
+      chip.onclick = () => {
+        $('#f-vpa').value = p.vpa;
+        if($('#upi-qr-panel').classList.contains('open')) refreshQr();
+      };
+      wrap.appendChild(chip);
+    });
+  }
+
   // ---------------- UPI deep links ----------------
   function resolvePayee(raw){
     const v = raw.trim();
@@ -1438,7 +1624,7 @@ const SEED_ENTRIES = [{"date": "2026-07-07", "desc": "Depoist in ATM", "type": "
     return { pa: '', ok: false };
   }
 
-  function buildUpiUrl(scheme){
+  function upiParams(){
     const amount = parseFloat($('#f-amount').value) || 0;
     const desc = $('#f-desc').value.trim() || 'Payment';
     const payee = resolvePayee($('#f-vpa').value);
@@ -1448,6 +1634,11 @@ const SEED_ENTRIES = [{"date": "2026-07-07", "desc": "Depoist in ATM", "type": "
     if(amount > 0) params.set('am', amount.toFixed(2));
     params.set('cu', 'INR');
     params.set('tn', desc);
+    return { params, payee };
+  }
+
+  function buildUpiUrl(scheme){
+    const { params } = upiParams();
     const qs = params.toString();
     switch(scheme){
       case 'gpay': return 'tez://upi/pay?' + qs;
@@ -1456,6 +1647,58 @@ const SEED_ENTRIES = [{"date": "2026-07-07", "desc": "Depoist in ATM", "type": "
       default: return 'upi://pay?' + qs;
     }
   }
+
+  function genericUpiLink(){
+    const { params } = upiParams();
+    return 'upi://pay?' + params.toString();
+  }
+
+  function refreshQr(){
+    const link = genericUpiLink();
+    const encoded = encodeURIComponent(link);
+    $('#upi-qr-img').src = 'https://api.qrserver.com/v1/create-qr-code/?size=352x352&margin=6&data=' + encoded;
+    const payee = resolvePayee($('#f-vpa').value);
+    $('#upi-qr-caption').textContent = payee.pa
+      ? 'Scan with any UPI app to pay ' + payee.pa
+      : 'Add a payee UPI ID or number above, then scan';
+  }
+
+  function setQrOpen(open){
+    $('#upi-qr-panel').classList.toggle('open', open);
+    if(open) refreshQr();
+  }
+
+  $('#upi-qr-toggle').addEventListener('click', () => {
+    setQrOpen(!$('#upi-qr-panel').classList.contains('open'));
+  });
+
+  ['f-amount','f-desc','f-vpa'].forEach(id => {
+    $('#' + id).addEventListener('input', () => {
+      if($('#upi-qr-panel').classList.contains('open')) refreshQr();
+    });
+  });
+
+  $('#upi-copy-btn').addEventListener('click', async () => {
+    const link = genericUpiLink();
+    const btn = $('#upi-copy-btn');
+    try{
+      await navigator.clipboard.writeText(link);
+    }catch(e){
+      const ta = document.createElement('textarea');
+      ta.value = link;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try{ document.execCommand('copy'); }catch(err){}
+      ta.remove();
+    }
+    btn.classList.add('copied');
+    const original = btn.innerHTML;
+    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg> Copied';
+    toast('✓ Payment link copied');
+    setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = original; }, 1800);
+  });
 
   $$('.upi-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -1466,14 +1709,30 @@ const SEED_ENTRIES = [{"date": "2026-07-07", "desc": "Depoist in ATM", "type": "
         $('#f-vpa').focus();
         return;
       }
-      window.location.href = buildUpiUrl(app);
+      const url = buildUpiUrl(app);
+      const startedAt = Date.now();
+      let handled = false;
+      const onHide = () => {
+        if(document.hidden){ handled = true; }
+      };
+      document.addEventListener('visibilitychange', onHide);
+      window.location.href = url;
       if(payee.isPhone){
         toast('Opening ' + btn.textContent.trim() + '… (works only if that number is registered as a UPI Number)');
       } else {
         toast('Opening ' + btn.textContent.trim() + '…');
       }
+      setTimeout(() => {
+        document.removeEventListener('visibilitychange', onHide);
+        if(!handled && Date.now() - startedAt < 3000){
+          toast('⚠ Couldn\'t open ' + btn.textContent.trim() + ' — showing QR instead');
+          setQrOpen(true);
+        }
+      }, 1200);
     });
   });
+
+
 
   // ---------------- CSV export ----------------
   function exportCsv(){
