@@ -34,7 +34,7 @@
     --radius: 18px;
   }
   *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
+  html,body{margin:0;padding:0;overflow-x:hidden;}
   body{
     background:
       radial-gradient(1200px 600px at 50% -10%, #1B4941 0%, var(--ink) 55%),
@@ -49,6 +49,7 @@
     margin:0 auto;
     min-height:100vh;
     position:relative;
+    z-index:1;
     padding-bottom:110px;
   }
 
@@ -127,8 +128,47 @@
     box-shadow:0 4px 14px rgba(232,163,61,0.35);
   }
 
-  /* ---------- Balance card ---------- */
-  .balance-wrap{ padding: 14px 22px 6px; }
+  /* ---------- Animated aurora background ---------- */
+  body::before{
+    content:'';
+    position:fixed;
+    inset:-20%;
+    z-index:0;
+    pointer-events:none;
+    background:
+      radial-gradient(circle at 20% 20%, rgba(232,163,61,0.22) 0%, transparent 40%),
+      radial-gradient(circle at 80% 15%, rgba(79,174,138,0.22) 0%, transparent 42%),
+      radial-gradient(circle at 30% 85%, rgba(201,122,43,0.18) 0%, transparent 40%),
+      radial-gradient(circle at 85% 80%, rgba(244,190,95,0.16) 0%, transparent 42%);
+    filter: blur(40px);
+    animation: aurora-drift 18s ease-in-out infinite alternate;
+  }
+  @keyframes aurora-drift{
+    0%{ transform: translate(0,0) scale(1) rotate(0deg); }
+    50%{ transform: translate(-3%,2%) scale(1.12) rotate(6deg); }
+    100%{ transform: translate(3%,-2%) scale(1.05) rotate(-4deg); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    body::before{ animation:none; }
+  }
+
+  .balance-wrap{ padding: 14px 22px 6px; position:relative; }
+  .balance-wrap::before{
+    content:'';
+    position:absolute;
+    inset:8px 14px;
+    border-radius: calc(var(--radius) + 6px);
+    background: conic-gradient(from 0deg, var(--marigold), var(--credit), var(--marigold-hi), var(--brass), var(--marigold));
+    filter: blur(18px);
+    opacity:0.55;
+    z-index:0;
+    animation: ring-spin 6s linear infinite;
+  }
+  @keyframes ring-spin{ to{ transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce){
+    .balance-wrap::before{ animation:none; }
+  }
+  .balance-card{ position:relative; z-index:1; }
   .balance-card{
     background: linear-gradient(155deg, var(--surface-hi) 0%, var(--surface) 60%, #143732 100%);
     border-radius: var(--radius);
@@ -167,7 +207,23 @@
   }
   .net-amount .cur{ font-size:22px; opacity:0.7; margin-right:2px; }
   .net-amount.negative{ color:var(--debit); }
-  .net-amount.positive{ color:var(--paper); }
+  .net-amount.positive .cur,
+  .net-amount.positive #net-amount-val{
+    background: linear-gradient(90deg, var(--paper) 20%, var(--marigold-hi) 40%, var(--paper) 60%);
+    background-size: 240% 100%;
+    -webkit-background-clip:text;
+    background-clip:text;
+    -webkit-text-fill-color: transparent;
+    animation: shimmer-text 3.5s linear infinite;
+  }
+  @keyframes shimmer-text{
+    0%{ background-position: 200% 0; }
+    100%{ background-position: -200% 0; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .net-amount.positive .cur,
+    .net-amount.positive #net-amount-val{ animation:none; -webkit-text-fill-color: var(--paper); background:none; }
+  }
   .as-of{
     font-size:12px;
     color:var(--paper-faint);
@@ -608,6 +664,8 @@
     align-items:center;
     justify-content:center;
     padding:20px;
+    position:relative;
+    z-index:1;
   }
   .auth-card{
     max-width:400px;
@@ -964,7 +1022,7 @@ const SEED_ENTRIES = [{"date": "2026-07-07", "desc": "Depoist in ATM", "type": "
   // Get these from: Firebase Console > Project Settings > General
   // > Your apps > SDK setup and configuration.
   // ================================================================
-const firebaseConfig = {
+  const firebaseConfig = {
   apiKey: "AIzaSyDeD1pi-XzzIND8zTOqzpAfZrctjAW0p_U",
   authDomain: "thillai-ledger.firebaseapp.com",
   projectId: "thillai-ledger",
@@ -1265,6 +1323,7 @@ const firebaseConfig = {
         `;
         card.onclick = () => openSheet(e);
         group.appendChild(card);
+        requestAnimationFrame(() => card.classList.add('revealed'));
       });
 
       wrap.appendChild(group);
