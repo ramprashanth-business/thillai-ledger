@@ -964,7 +964,7 @@ const SEED_ENTRIES = [{"date": "2026-07-07", "desc": "Depoist in ATM", "type": "
   // Get these from: Firebase Console > Project Settings > General
   // > Your apps > SDK setup and configuration.
   // ================================================================
-  const firebaseConfig = {
+const firebaseConfig = {
   apiKey: "AIzaSyDeD1pi-XzzIND8zTOqzpAfZrctjAW0p_U",
   authDomain: "thillai-ledger.firebaseapp.com",
   projectId: "thillai-ledger",
@@ -1413,9 +1413,6 @@ const SEED_ENTRIES = [{"date": "2026-07-07", "desc": "Depoist in ATM", "type": "
   }
 
   // ---------------- PDF export ----------------
-  function escapeHtml(s){
-    return String(s).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  }
   function exportPdf(){
     const list = sortedEntries();
     if(!list.length){ toast('No entries to export'); return; }
