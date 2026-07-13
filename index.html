@@ -538,6 +538,11 @@
   }
   .save-btn:active{ transform:scale(0.98); }
   .save-btn:disabled{ opacity:0.5; }
+  .save-btn-highlight{ animation: save-btn-pulse 0.7s ease-in-out 3; }
+  @keyframes save-btn-pulse{
+    0%, 100%{ box-shadow: 0 0 0 0 rgba(232,163,61,0.6); }
+    50%{ box-shadow: 0 0 0 10px rgba(232,163,61,0); }
+  }
 
   .delete-btn{
     width:100%;
@@ -1246,7 +1251,7 @@ const SEED_ENTRIES = [{"date": "2026-07-07", "desc": "Depoist in ATM", "type": "
   // Get these from: Firebase Console > Project Settings > General
   // > Your apps > SDK setup and configuration.
   // ================================================================
-const firebaseConfig = {
+  const firebaseConfig = {
   apiKey: "AIzaSyDeD1pi-XzzIND8zTOqzpAfZrctjAW0p_U",
   authDomain: "thillai-ledger.firebaseapp.com",
   projectId: "thillai-ledger",
@@ -1726,7 +1731,7 @@ const firebaseConfig = {
         canvas.height = video.videoHeight;
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
         const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const code = window.jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts: 'dontInvert' });
+        const code = window.jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts: 'attemptBoth' });
         if(code && code.data){
           const parsed = parseUpiString(code.data);
           if(parsed){
@@ -1738,7 +1743,8 @@ const firebaseConfig = {
             stopQrScan();
             return;
           } else {
-            $('#qr-scan-hint').textContent = "That's not a UPI QR code — try another";
+            const snippet = code.data.length > 40 ? code.data.slice(0, 40) + '…' : code.data;
+            $('#qr-scan-hint').textContent = "Scanned, but not a standard UPI link (" + snippet + ") — try another";
           }
         }
       }
@@ -1885,6 +1891,8 @@ const firebaseConfig = {
     setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = original; }, 1800);
   });
 
+  let paymentAttempted = false;
+
   $$('.upi-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const app = btn.dataset.app;
@@ -1894,27 +1902,48 @@ const firebaseConfig = {
         $('#f-vpa').focus();
         return;
       }
-      const url = buildUpiUrl(app);
-      const startedAt = Date.now();
-      let handled = false;
-      const onHide = () => {
-        if(document.hidden){ handled = true; }
-      };
-      document.addEventListener('visibilitychange', onHide);
-      window.location.href = url;
-      if(payee.isPhone){
-        toast('Opening ' + btn.textContent.trim() + '… (works only if that number is registered as a UPI Number)');
-      } else {
-        toast('Opening ' + btn.textContent.trim() + '…');
+      if(!payee.pa){
+        toast('⚠ Add a payee UPI ID or number first');
+        $('#f-vpa').focus();
+        return;
       }
+      const appUrl = buildUpiUrl(app);
+      const genericUrl = genericUpiLink();
+      let handled = false;
+      const onHide = () => { if(document.hidden) handled = true; };
+      document.addEventListener('visibilitychange', onHide);
+
+      paymentAttempted = true;
+      window.location.href = appUrl;
+      toast('Opening ' + btn.textContent.trim() + '…');
+
+      // Stage 2: app-specific scheme likely failed silently — try the universal UPI link.
+      setTimeout(() => {
+        if(handled) { document.removeEventListener('visibilitychange', onHide); return; }
+        window.location.href = genericUrl;
+      }, 900);
+
+      // Stage 3: nothing opened at all — fall back to QR, which works regardless of app/OS.
       setTimeout(() => {
         document.removeEventListener('visibilitychange', onHide);
-        if(!handled && Date.now() - startedAt < 3000){
-          toast('⚠ Couldn\'t open ' + btn.textContent.trim() + ' — showing QR instead');
+        if(!handled){
+          toast('⚠ Couldn\'t open a UPI app automatically — scan the QR below instead');
           setQrOpen(true);
         }
-      }, 1200);
+      }, 1800);
     });
+  });
+
+  // "Welcome back" — can't detect if payment succeeded (no app has that permission),
+  // but we can make logging it a single tap instead of hunting for the Save button.
+  document.addEventListener('visibilitychange', () => {
+    if(!document.hidden && paymentAttempted && $('#entry-sheet').classList.contains('show')){
+      paymentAttempted = false;
+      toast('👋 Back already? Review the details below and tap Save to log it');
+      $('#save-btn').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      $('#save-btn').classList.add('save-btn-highlight');
+      setTimeout(() => $('#save-btn').classList.remove('save-btn-highlight'), 2400);
+    }
   });
 
 
