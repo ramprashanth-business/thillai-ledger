@@ -1180,7 +1180,7 @@
 
     <div class="upi-section" id="upi-section">
       <label style="font-family:'IBM Plex Mono', monospace; font-size:10.5px; letter-spacing:0.08em; text-transform:uppercase; color:var(--paper-faint); display:block; margin-bottom:6px;">Quick pay (optional)</label>
-      <p class="field-note">Opens the app on your phone to make the payment — you still confirm and log the entry here.</p>
+      <p class="field-note">Opens GPay with the details pre-filled. Some banks cap payments started from outside GPay itself — if it's declined, scan the QR below with GPay's own scanner instead, or pay directly in GPay and just log it here.</p>
       <div class="field" style="margin-bottom:10px;">
         <div class="vpa-input-row">
           <input type="text" id="f-vpa" placeholder="Payee UPI ID or phone (optional)" autocomplete="tel" name="payee-contact">
@@ -1194,7 +1194,7 @@
         <div class="recent-payees" id="recent-payees"></div>
       </div>
       <div class="upi-btns">
-        <div class="upi-btn upi-btn-solo" data-app="gpay"><div class="upi-logo gpay">G</div>Pay with GPay</div>
+        <div class="upi-btn upi-btn-solo" data-app="gpay"><div class="upi-logo gpay">G</div>Open in GPay</div>
       </div>
       <div class="upi-qr-toggle" id="upi-qr-toggle">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h3M20 17v3.01"/></svg>
