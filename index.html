@@ -1251,7 +1251,7 @@ const SEED_ENTRIES = [{"date": "2026-07-07", "desc": "Depoist in ATM", "type": "
   // Get these from: Firebase Console > Project Settings > General
   // > Your apps > SDK setup and configuration.
   // ================================================================
-  const firebaseConfig = {
+const firebaseConfig = {
   apiKey: "AIzaSyDeD1pi-XzzIND8zTOqzpAfZrctjAW0p_U",
   authDomain: "thillai-ledger.firebaseapp.com",
   projectId: "thillai-ledger",
@@ -1822,10 +1822,15 @@ const SEED_ENTRIES = [{"date": "2026-07-07", "desc": "Depoist in ATM", "type": "
     const payee = resolvePayee($('#f-vpa').value);
     const params = new URLSearchParams();
     if(payee.pa) params.set('pa', payee.pa);
-    params.set('pn', 'Thillai Decors');
+    // 'pn' must be the PAYEE's name, not our own — a mismatch here is a real
+    // fraud-check trigger on the bank/NPCI side and can cause false declines.
+    params.set('pn', desc || 'Payee');
     if(amount > 0) params.set('am', amount.toFixed(2));
     params.set('cu', 'INR');
     params.set('tn', desc);
+    // Unique transaction reference — expected by the UPI intent spec; missing it
+    // can make some banks' risk engines treat the payment as higher-risk.
+    params.set('tr', 'TL' + Date.now().toString(36).toUpperCase());
     return { params, payee };
   }
 
