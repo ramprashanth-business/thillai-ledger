@@ -1183,7 +1183,7 @@
       <p class="field-note">Opens the app on your phone to make the payment — you still confirm and log the entry here.</p>
       <div class="field" style="margin-bottom:10px;">
         <div class="vpa-input-row">
-          <input type="text" id="f-vpa" placeholder="Payee UPI ID or phone (optional)">
+          <input type="text" id="f-vpa" placeholder="Payee UPI ID or phone (optional)" autocomplete="tel" name="payee-contact">
           <button type="button" id="scan-qr-btn" class="contact-pick-btn" title="Scan a shop's QR code">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h3M20 17v3.01"/></svg>
           </button>
@@ -1908,29 +1908,24 @@ const SEED_ENTRIES = [{"date": "2026-07-07", "desc": "Depoist in ATM", "type": "
         return;
       }
       const appUrl = buildUpiUrl(app);
-      const genericUrl = genericUpiLink();
       let handled = false;
       const onHide = () => { if(document.hidden) handled = true; };
       document.addEventListener('visibilitychange', onHide);
 
       paymentAttempted = true;
       window.location.href = appUrl;
-      toast('Opening ' + btn.textContent.trim() + '…');
+      toast('Opening ' + btn.textContent.trim() + '… (' + appUrl.split('?')[0] + ')');
 
-      // Stage 2: app-specific scheme likely failed silently — try the universal UPI link.
-      setTimeout(() => {
-        if(handled) { document.removeEventListener('visibilitychange', onHide); return; }
-        window.location.href = genericUrl;
-      }, 900);
-
-      // Stage 3: nothing opened at all — fall back to QR, which works regardless of app/OS.
+      // If GPay specifically doesn't open, fall back straight to the QR code —
+      // NOT to the generic upi:// link, since that can be claimed by any UPI-capable
+      // app on the phone (e.g. WhatsApp Pay), not necessarily GPay.
       setTimeout(() => {
         document.removeEventListener('visibilitychange', onHide);
         if(!handled){
-          toast('⚠ Couldn\'t open a UPI app automatically — scan the QR below instead');
+          toast('⚠ GPay didn\'t open — scan the QR below with GPay\'s scanner instead');
           setQrOpen(true);
         }
-      }, 1800);
+      }, 1500);
     });
   });
 
