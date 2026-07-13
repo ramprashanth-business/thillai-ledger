@@ -599,8 +599,80 @@
   .upi-logo.phonepe{ background:#5F259F; }
   .upi-logo.paytm{ background:#00BAF2; }
 
-  .vpa-input-row{ display:flex; gap:8px; align-items:stretch; }
+  #qr-scan-overlay{
+    position:fixed;
+    inset:0;
+    background:#000;
+    z-index:200;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+  }
+  #qr-scan-overlay.show{ display:flex; }
+  #qr-scan-video{
+    position:absolute;
+    inset:0;
+    width:100%; height:100%;
+    object-fit:cover;
+  }
+  .qr-scan-frame{
+    position:relative;
+    width:min(72vw, 300px);
+    height:min(72vw, 300px);
+    z-index:1;
+  }
+  .qr-scan-frame::before, .qr-scan-frame::after,
+  .qr-scan-corner::before, .qr-scan-corner::after{
+    content:'';
+    position:absolute;
+    width:34px; height:34px;
+    border:3px solid var(--marigold-hi);
+  }
+  .qr-scan-frame::before{ top:0; left:0; border-right:none; border-bottom:none; border-radius:10px 0 0 0; }
+  .qr-scan-frame::after{ top:0; right:0; border-left:none; border-bottom:none; border-radius:0 10px 0 0; }
+  .qr-scan-corner::before{ bottom:0; left:0; border-right:none; border-top:none; border-radius:0 0 0 10px; }
+  .qr-scan-corner::after{ bottom:0; right:0; border-left:none; border-top:none; border-radius:0 0 10px 0; }
+  .qr-scan-frame{ box-shadow: 0 0 0 2000px rgba(0,0,0,0.55); border-radius:14px; }
+  .qr-scan-frame > .qr-scan-corner{ position:absolute; inset:0; }
+  .qr-scan-frame{ animation: qr-scan-pulse 2s ease-in-out infinite; }
+  @keyframes qr-scan-pulse{
+    0%, 100%{ box-shadow: 0 0 0 2000px rgba(0,0,0,0.55), 0 0 24px rgba(232,163,61,0.15) inset; }
+    50%{ box-shadow: 0 0 0 2000px rgba(0,0,0,0.55), 0 0 40px rgba(232,163,61,0.35) inset; }
+  }
+  .qr-scan-topbar{
+    position:absolute;
+    top:0; left:0; right:0;
+    padding:calc(env(safe-area-inset-top, 0px) + 16px) 16px 16px;
+    display:flex; align-items:center; gap:12px;
+    background:linear-gradient(rgba(0,0,0,0.6), transparent);
+    color:var(--paper);
+    font-weight:700;
+    font-size:14px;
+    z-index:2;
+  }
+  .qr-scan-close{
+    width:34px; height:34px;
+    border-radius:50%;
+    border:none;
+    background:rgba(255,255,255,0.12);
+    color:#fff;
+    font-size:16px;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+  }
+  .qr-scan-hint{
+    position:absolute;
+    bottom:calc(env(safe-area-inset-bottom, 0px) + 34px);
+    left:0; right:0;
+    text-align:center;
+    color:var(--paper-dim);
+    font-size:12.5px;
+    z-index:2;
+  }
+
   .vpa-input-row input{ flex:1; min-width:0; }
+  .vpa-input-row{ display:flex; gap:8px; align-items:stretch; }
   .contact-pick-btn{
     flex:0 0 auto;
     width:44px;
@@ -1058,6 +1130,17 @@
 
   <div id="sheet-backdrop"></div>
 
+  <div id="qr-scan-overlay">
+    <video id="qr-scan-video" playsinline muted></video>
+    <canvas id="qr-scan-canvas" style="display:none;"></canvas>
+    <div class="qr-scan-frame"><div class="qr-scan-corner"></div></div>
+    <div class="qr-scan-topbar">
+      <button type="button" id="qr-scan-close" class="qr-scan-close">✕</button>
+      <span>Scan shop's UPI QR code</span>
+    </div>
+    <div class="qr-scan-hint" id="qr-scan-hint">Point your camera at the QR code</div>
+  </div>
+
   <div id="entry-sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-title">
@@ -1094,6 +1177,9 @@
       <div class="field" style="margin-bottom:10px;">
         <div class="vpa-input-row">
           <input type="text" id="f-vpa" placeholder="Payee UPI ID or phone (optional)">
+          <button type="button" id="scan-qr-btn" class="contact-pick-btn" title="Scan a shop's QR code">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h3M20 17v3.01"/></svg>
+          </button>
           <button type="button" id="contact-pick-btn" class="contact-pick-btn" title="Pick from contacts" style="display:none;">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
           </button>
@@ -1101,9 +1187,7 @@
         <div class="recent-payees" id="recent-payees"></div>
       </div>
       <div class="upi-btns">
-        <div class="upi-btn" data-app="gpay"><div class="upi-logo gpay">G</div>GPay</div>
-        <div class="upi-btn" data-app="phonepe"><div class="upi-logo phonepe">P</div>PhonePe</div>
-        <div class="upi-btn" data-app="paytm"><div class="upi-logo paytm">P</div>Paytm</div>
+        <div class="upi-btn upi-btn-solo" data-app="gpay"><div class="upi-logo gpay">G</div>Pay with GPay</div>
       </div>
       <div class="upi-qr-toggle" id="upi-qr-toggle">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h3M20 17v3.01"/></svg>
@@ -1160,7 +1244,7 @@ const SEED_ENTRIES = [{"date": "2026-07-07", "desc": "Depoist in ATM", "type": "
   // Get these from: Firebase Console > Project Settings > General
   // > Your apps > SDK setup and configuration.
   // ================================================================
- const firebaseConfig = {
+const firebaseConfig = {
   apiKey: "AIzaSyDeD1pi-XzzIND8zTOqzpAfZrctjAW0p_U",
   authDomain: "thillai-ledger.firebaseapp.com",
   projectId: "thillai-ledger",
@@ -1506,6 +1590,7 @@ const SEED_ENTRIES = [{"date": "2026-07-07", "desc": "Depoist in ATM", "type": "
     $('#entry-sheet').classList.remove('show');
     $('#menu-sheet').classList.remove('show');
     editingId = null;
+    if(qrStream) stopQrScan();
   }
 
   function updateTypeToggle(){
@@ -1563,6 +1648,105 @@ const SEED_ENTRIES = [{"date": "2026-07-07", "desc": "Depoist in ATM", "type": "
       toast('⚠ Could not delete — check connection');
     }
   }
+
+  // ---------------- Shop QR scanning ----------------
+  let qrJsPromise = null;
+  function loadJsQr(){
+    if(window.jsQR) return Promise.resolve();
+    if(qrJsPromise) return qrJsPromise;
+    qrJsPromise = new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js';
+      s.onload = resolve;
+      s.onerror = () => reject(new Error('load failed'));
+      document.head.appendChild(s);
+    });
+    return qrJsPromise;
+  }
+
+  let qrStream = null;
+  let qrRafId = null;
+
+  function parseUpiString(text){
+    try{
+      const withScheme = text.trim();
+      const qIndex = withScheme.indexOf('?');
+      if(qIndex === -1 || !/^[a-zA-Z0-9]+:\/\//.test(withScheme)) return null;
+      const params = new URLSearchParams(withScheme.slice(qIndex + 1));
+      const pa = params.get('pa');
+      if(!pa) return null;
+      return {
+        pa,
+        pn: params.get('pn') || '',
+        am: params.get('am') || ''
+      };
+    }catch(e){ return null; }
+  }
+
+  async function stopQrScan(){
+    if(qrRafId) cancelAnimationFrame(qrRafId);
+    qrRafId = null;
+    if(qrStream){
+      qrStream.getTracks().forEach(t => t.stop());
+      qrStream = null;
+    }
+    $('#qr-scan-overlay').classList.remove('show');
+  }
+
+  async function startQrScan(){
+    try{
+      await loadJsQr();
+    }catch(e){
+      toast('⚠ Could not load scanner — check your connection');
+      return;
+    }
+    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+      toast('⚠ Camera not supported on this browser');
+      return;
+    }
+    try{
+      qrStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    }catch(e){
+      toast('⚠ Camera permission denied');
+      return;
+    }
+    const video = $('#qr-scan-video');
+    const canvas = $('#qr-scan-canvas');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    video.srcObject = qrStream;
+    await video.play();
+    $('#qr-scan-overlay').classList.add('show');
+
+    const tick = () => {
+      if(!qrStream) return;
+      if(video.readyState === video.HAVE_ENOUGH_DATA){
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = window.jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts: 'dontInvert' });
+        if(code && code.data){
+          const parsed = parseUpiString(code.data);
+          if(parsed){
+            $('#f-vpa').value = parsed.pa;
+            if(!$('#f-desc').value.trim() && parsed.pn) $('#f-desc').value = parsed.pn;
+            if(parsed.am) $('#f-amount').value = parsed.am;
+            renderRecentPayees();
+            toast('✓ Scanned ' + (parsed.pn || parsed.pa));
+            stopQrScan();
+            return;
+          } else {
+            $('#qr-scan-hint').textContent = "That's not a UPI QR code — try another";
+          }
+        }
+      }
+      qrRafId = requestAnimationFrame(tick);
+    };
+    qrRafId = requestAnimationFrame(tick);
+  }
+
+  $('#scan-qr-btn').addEventListener('click', startQrScan);
+  $('#qr-scan-close').addEventListener('click', stopQrScan);
 
   // ---------------- Contact book + recent payees ----------------
   const contactsSupported = !!(navigator.contacts && navigator.contacts.select && window.ContactsManager);
@@ -1640,10 +1824,9 @@ const SEED_ENTRIES = [{"date": "2026-07-07", "desc": "Depoist in ATM", "type": "
   function buildUpiUrl(scheme){
     const { params } = upiParams();
     const qs = params.toString();
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
     switch(scheme){
-      case 'gpay': return 'tez://upi/pay?' + qs;
-      case 'phonepe': return 'phonepe://pay?' + qs;
-      case 'paytm': return 'paytmmp://pay?' + qs;
+      case 'gpay': return (isIOS ? 'gpay://upi/pay?' : 'tez://upi/pay?') + qs;
       default: return 'upi://pay?' + qs;
     }
   }
