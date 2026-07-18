@@ -1494,7 +1494,7 @@ const firebaseConfig = {
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
   import {
     getFirestore, collection, doc, addDoc, updateDoc, deleteDoc,
-    getDocs, writeBatch, onSnapshot, query
+    getDocs, writeBatch, onSnapshot, query, getDoc, setDoc
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
   const firebaseApp = initializeApp(firebaseConfig);
@@ -1626,15 +1626,30 @@ const firebaseConfig = {
 
   // ---------------- Firestore sync ----------------
   function entriesCol(uid){ return collection(db, 'users', uid, 'entries'); }
+  function userDocRef(uid){ return doc(db, 'users', uid); }
 
   async function seedIfEmpty(uid){
+    // A user is only ever seeded once, tracked by a marker on their user doc —
+    // NOT by "is the entries list currently empty". Otherwise, deleting
+    // everything via "Clear all data" leaves the list empty, and the very
+    // next app launch would silently reload the demo entries right back in,
+    // making Clear all data look like it never worked.
+    const userRef = userDocRef(uid);
+    const userSnap = await getDoc(userRef);
+    if(userSnap.exists() && userSnap.data().seeded) return;
+
     const snap = await getDocs(entriesCol(uid));
-    if(!snap.empty) return;
+    if(!snap.empty){
+      // Already has entries from before this check existed — just mark seeded.
+      await setDoc(userRef, { seeded: true }, { merge: true });
+      return;
+    }
     const batch = writeBatch(db);
     SEED_ENTRIES.forEach(e => {
       const ref = doc(entriesCol(uid));
       batch.set(ref, { desc: e.desc, amount: e.amount, date: e.date, type: e.type, order: e.order, vpa: '', category: '' });
     });
+    batch.set(userRef, { seeded: true }, { merge: true });
     await batch.commit();
   }
 
@@ -2238,6 +2253,24 @@ const firebaseConfig = {
         toast('⚠ Add a payee UPI ID or number first');
         $('#f-vpa').focus();
         return;
+      }
+      // Gate on bare phone numbers: this is the #1 cause of the "you've
+      // exceeded the bank limit" message right after PIN entry — GPay lets
+      // the payment get all the way to the PIN screen even when the number
+      // isn't linked as a UPI Number, then the bank silently declines it.
+      // There's no API a web app can call to check this in advance, so the
+      // best fix is to stop and confirm before the money-losing round trip.
+      if(payee.isPhone){
+        const proceed = confirm(
+          'This will only work if ' + payee.pa + ' has been linked as a "UPI Number" by its owner — most people haven\'t done this.\n\n' +
+          'If it isn\'t linked, GPay will still let you enter your PIN, then fail with "exceeded bank limit" (this isn\'t a real limit).\n\n' +
+          'Ask them for their UPI ID (looks like name@bank) instead if you can.\n\n' +
+          'Tap OK to try anyway with this phone number, or Cancel to go back and enter a UPI ID.'
+        );
+        if(!proceed){
+          $('#f-vpa').focus();
+          return;
+        }
       }
       const appUrl = buildUpiUrl(app);
       let handled = false;
