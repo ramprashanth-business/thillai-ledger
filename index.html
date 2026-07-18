@@ -322,6 +322,29 @@
   }
   .chip.active{ background:rgba(232,163,61,0.14); border-color:var(--marigold); color:var(--marigold-hi); }
 
+  .category-filter-row{
+    display:flex;
+    gap:8px;
+    padding:0 22px 10px;
+    overflow-x:auto;
+    scrollbar-width:none;
+  }
+  .category-filter-row::-webkit-scrollbar{ display:none; }
+  .category-filter-row.hide{ display:none; }
+  .chip.cat-chip{ flex:0 0 auto; white-space:nowrap; border-left-width:3px; }
+  .chip.cat-chip.active{ background:color-mix(in srgb, var(--chip-color, var(--marigold)) 18%, transparent); border-color:var(--chip-color, var(--marigold)); color:var(--chip-color, var(--marigold-hi)); }
+
+  .entry-cat{
+    font-weight:700;
+    opacity:0.95;
+  }
+  .entry-cat::before{
+    content:'·';
+    margin:0 4px 0 0;
+    opacity:0.6;
+    color:var(--paper-dim);
+  }
+
   /* ---------- Entries list ---------- */
   #entries-list{ padding: 10px 22px 20px; }
   .entry-card:active{ transform:scale(0.985); background:var(--surface-hi); }
@@ -490,6 +513,29 @@
   }
   .type-opt.Credit.active{ background:var(--credit-bg); border-color:var(--credit); color:var(--credit); }
   .type-opt.Debit.active{ background:var(--debit-bg); border-color:var(--debit); color:var(--debit); }
+
+  .category-chips{
+    display:flex;
+    flex-wrap:wrap;
+    gap:7px;
+    margin-top:9px;
+  }
+  .category-chip{
+    font-size:11.5px;
+    padding:6px 12px;
+    border-radius:100px;
+    border:1px solid var(--hairline);
+    border-left:3px solid var(--chip-color, var(--hairline));
+    color:var(--paper-dim);
+    cursor:pointer;
+    font-weight:600;
+    transition: all .15s ease;
+  }
+  .category-chip.active{
+    background: color-mix(in srgb, var(--chip-color, var(--marigold)) 20%, transparent);
+    border-color: var(--chip-color, var(--marigold));
+    color: var(--paper);
+  }
 
   .field{ margin-bottom:14px; }
   .field label{
@@ -869,6 +915,119 @@
   .menu-item.danger{ color:var(--debit); }
   .menu-item.danger svg{ color:var(--debit); }
 
+  /* ---------- Insights sheet ---------- */
+  #insights-sheet{
+    position:fixed;
+    left:50%;
+    bottom:0;
+    transform:translate(-50%, 100%);
+    width:100%;
+    max-width:460px;
+    background:var(--ink-2);
+    border-radius:24px 24px 0 0;
+    border:1px solid var(--hairline);
+    border-bottom:none;
+    padding:10px 22px 30px;
+    z-index:51;
+    transition: transform .32s cubic-bezier(.32,.72,0,1);
+    max-height:88vh;
+    overflow-y:auto;
+  }
+  #insights-sheet.show{ transform:translate(-50%, 0); }
+  .insights-tabs{ display:flex; gap:8px; margin-bottom:18px; }
+  .insights-tabs .chip{ flex:1; text-align:center; }
+  .insights-section-title{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10.5px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--paper-faint);
+    margin:22px 0 12px;
+  }
+  .donut-section{
+    position:relative;
+    display:flex;
+    justify-content:center;
+    padding:6px 0 4px;
+  }
+  .donut-center{
+    position:absolute;
+    top:50%; left:50%;
+    transform:translate(-50%,-50%);
+    text-align:center;
+    pointer-events:none;
+  }
+  .donut-center .amt{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:19px;
+    color:var(--paper);
+    display:block;
+  }
+  .donut-center .lbl{
+    font-size:10px;
+    color:var(--paper-faint);
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+  }
+  .category-legend{ margin-top:16px; display:flex; flex-direction:column; gap:2px; }
+  .legend-row{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    padding:8px 2px;
+    border-bottom:1px solid var(--hairline);
+    font-size:13px;
+  }
+  .legend-row:last-child{ border-bottom:none; }
+  .legend-dot{ width:9px; height:9px; border-radius:50%; flex:0 0 auto; }
+  .legend-label{ flex:1; color:var(--paper); font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .legend-pct{ color:var(--paper-faint); font-size:11.5px; width:34px; text-align:right; font-family:'IBM Plex Mono', monospace; }
+  .legend-amt{ color:var(--paper-dim); font-family:'IBM Plex Mono', monospace; font-size:12.5px; width:78px; text-align:right; }
+  .chart-empty{ color:var(--paper-faint); font-size:13px; text-align:center; padding:30px 0; }
+
+  .trend-chart{
+    display:flex;
+    align-items:flex-end;
+    gap:10px;
+    height:140px;
+    padding:6px 2px 0;
+    overflow-x:auto;
+    scrollbar-width:none;
+  }
+  .trend-chart::-webkit-scrollbar{ display:none; }
+  .trend-col{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    flex:0 0 auto;
+    height:100%;
+  }
+  .trend-bars{
+    display:flex;
+    align-items:flex-end;
+    gap:3px;
+    height:112px;
+  }
+  .trend-bar{
+    width:9px;
+    border-radius:3px 3px 1px 1px;
+    min-height:2px;
+    transition: height .4s cubic-bezier(.32,.72,0,1);
+  }
+  .trend-bar.credit{ background:var(--credit); }
+  .trend-bar.debit{ background:var(--debit); }
+  .trend-label{
+    font-size:9.5px;
+    color:var(--paper-faint);
+    margin-top:6px;
+    font-family:'IBM Plex Mono', monospace;
+    white-space:nowrap;
+  }
+  .trend-legend{ display:flex; gap:16px; margin-top:14px; font-size:11.5px; color:var(--paper-dim); }
+  .trend-legend span{ display:inline-flex; align-items:center; gap:6px; }
+  .trend-legend .dot{ width:8px; height:8px; border-radius:50%; display:inline-block; }
+
   #auth-screen{
     min-height:100vh;
     display:flex;
@@ -1138,6 +1297,8 @@
     <div class="chip" data-filter="Debit">Debits</div>
   </div>
 
+  <div class="category-filter-row hide" id="category-filter-chips"></div>
+
   <div id="entries-list">
     <div class="loading-wrap"><div class="spin"></div>Loading your ledger…</div>
   </div>
@@ -1180,6 +1341,13 @@
     <div class="field">
       <label>Description</label>
       <input type="text" id="f-desc" placeholder="e.g. Gopinath Client Credit">
+    </div>
+
+    <div class="field">
+      <label>Category</label>
+      <input type="text" id="f-category" placeholder="e.g. Flowers, Transport, Rent" list="category-datalist" autocomplete="off">
+      <datalist id="category-datalist"></datalist>
+      <div class="category-chips" id="category-chips"></div>
     </div>
 
     <div class="field amount-field">
@@ -1244,6 +1412,10 @@
   <div id="menu-sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-title">Ledger Settings</div>
+    <div class="menu-item" id="menu-insights">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 118 2.83"/><path d="M22 12A10 10 0 0012 2v10z"/></svg>
+      Insights &amp; charts
+    </div>
     <div class="menu-item" id="menu-pdf">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>
       Export statement (PDF)
@@ -1259,6 +1431,37 @@
     <div class="menu-item" id="menu-signout">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
       Sign out
+    </div>
+  </div>
+
+  <div id="insights-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">
+      <span>Insights</span>
+      <span class="close-x" id="insights-close">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </span>
+    </div>
+
+    <div class="insights-tabs">
+      <div class="chip active" id="insights-tab-debit">Expenses</div>
+      <div class="chip" id="insights-tab-credit">Income</div>
+    </div>
+
+    <div class="donut-section">
+      <div id="donut-wrap"></div>
+      <div class="donut-center" id="donut-center">
+        <span class="amt" id="donut-center-amt">₹0</span>
+        <span class="lbl" id="donut-center-lbl">Total</span>
+      </div>
+    </div>
+    <div class="category-legend" id="category-legend"></div>
+
+    <div class="insights-section-title" id="trend-title">Trend</div>
+    <div class="trend-chart" id="trend-chart"></div>
+    <div class="trend-legend">
+      <span><span class="dot" style="background:var(--credit);"></span>Credit</span>
+      <span><span class="dot" style="background:var(--debit);"></span>Debit</span>
     </div>
   </div>
 
@@ -1301,12 +1504,35 @@ const firebaseConfig = {
   let entries = [];
   let activeFilter = 'All';
   let activeMonth = 'All';
+  let activeCategoryFilter = 'All';
   let searchTerm = '';
   let editingId = null;
   let activeType = 'Debit';
   let currentUser = null;
   let unsubscribeSnapshot = null;
   let isSignUpMode = false;
+  let insightsCatType = 'Debit';
+
+  const CATEGORIES = [
+    'Flowers', 'Materials & Textiles', 'Transport & Petrol', 'Labour & Wages',
+    'Food', 'Rent', 'Utilities & Recharge', 'Tools & Equipment', 'Courier',
+    'Bank & ATM', 'Client Payment', 'Other'
+  ];
+  const CATEGORY_PALETTE = ['#E8A33D','#4FAE8A','#D9705B','#C97A2B','#6FA8DC','#B98CD9','#5FC9C0','#E0C46F','#D98CB3','#8FBF6A','#C97AA8','#7A9ED9','#F4BE5F','#5EA6A0'];
+
+  function categoryColor(name){
+    const key = (name || 'Uncategorized').trim().toLowerCase();
+    let hash = 0;
+    for(let i=0;i<key.length;i++){ hash = (hash * 31 + key.charCodeAt(i)) >>> 0; }
+    return CATEGORY_PALETTE[hash % CATEGORY_PALETTE.length];
+  }
+
+  function getAllCategories(){
+    const used = new Set(entries.map(e => (e.category || '').trim()).filter(Boolean));
+    const merged = CATEGORIES.slice();
+    used.forEach(c => { if(!merged.includes(c)) merged.push(c); });
+    return merged;
+  }
 
   const $ = (sel) => document.querySelector(sel);
   const $$ = (sel) => document.querySelectorAll(sel);
@@ -1407,7 +1633,7 @@ const firebaseConfig = {
     const batch = writeBatch(db);
     SEED_ENTRIES.forEach(e => {
       const ref = doc(entriesCol(uid));
-      batch.set(ref, { desc: e.desc, amount: e.amount, date: e.date, type: e.type, order: e.order, vpa: '' });
+      batch.set(ref, { desc: e.desc, amount: e.amount, date: e.date, type: e.type, order: e.order, vpa: '', category: '' });
     });
     await batch.commit();
   }
@@ -1481,9 +1707,10 @@ const firebaseConfig = {
     let list = sortedEntries();
     if(activeMonth !== 'All') list = list.filter(e => monthKey(e.date) === activeMonth);
     if(activeFilter !== 'All') list = list.filter(e => e.type === activeFilter);
+    if(activeCategoryFilter !== 'All') list = list.filter(e => (e.category || '').trim() === activeCategoryFilter);
     if(searchTerm.trim()){
       const q = searchTerm.trim().toLowerCase();
-      list = list.filter(e => e.desc.toLowerCase().includes(q));
+      list = list.filter(e => e.desc.toLowerCase().includes(q) || (e.category || '').toLowerCase().includes(q));
     }
     return list;
   }
@@ -1570,7 +1797,7 @@ const firebaseConfig = {
           <div class="entry-icon ${e.type}">${e.type === 'Credit' ? CREDIT_ICON : DEBIT_ICON}</div>
           <div class="entry-mid">
             <div class="entry-desc">${escapeHtml(e.desc)}</div>
-            <div class="entry-sub">${e.type === 'Credit' ? 'Received' : 'Paid'}</div>
+            <div class="entry-sub">${e.type === 'Credit' ? 'Received' : 'Paid'}${(e.category && e.category.trim()) ? '<span class="entry-cat" style="color:' + categoryColor(e.category) + '">' + escapeHtml(e.category.trim()) + '</span>' : ''}</div>
           </div>
           <div class="entry-amt ${e.type}">${e.type === 'Credit' ? '+' : '−'}${fmtMoney(e.amount)}</div>
         `;
@@ -1589,11 +1816,70 @@ const firebaseConfig = {
     return d.innerHTML;
   }
 
+  function renderCategoryFilterChips(){
+    const wrap = $('#category-filter-chips');
+    const cats = Array.from(new Set(entries.map(e => (e.category || '').trim()).filter(Boolean))).sort();
+    if(!cats.length){
+      wrap.classList.add('hide');
+      wrap.innerHTML = '';
+      if(activeCategoryFilter !== 'All') activeCategoryFilter = 'All';
+      return;
+    }
+    wrap.classList.remove('hide');
+    wrap.innerHTML = '';
+    const allChip = document.createElement('div');
+    allChip.className = 'chip cat-chip' + (activeCategoryFilter === 'All' ? ' active' : '');
+    allChip.textContent = 'All categories';
+    allChip.onclick = () => { activeCategoryFilter = 'All'; renderAll(); };
+    wrap.appendChild(allChip);
+    cats.forEach(cat => {
+      const chip = document.createElement('div');
+      chip.className = 'chip cat-chip' + (activeCategoryFilter === cat ? ' active' : '');
+      chip.style.setProperty('--chip-color', categoryColor(cat));
+      chip.textContent = cat;
+      chip.onclick = () => { activeCategoryFilter = cat; renderAll(); };
+      wrap.appendChild(chip);
+    });
+  }
+
   function renderAll(){
     renderMonthTabs();
+    renderCategoryFilterChips();
     renderBalance();
     renderList();
   }
+
+  function renderCategoryChips(){
+    const wrap = $('#category-chips');
+    const dl = $('#category-datalist');
+    wrap.innerHTML = '';
+    dl.innerHTML = '';
+    getAllCategories().forEach(cat => {
+      const opt = document.createElement('option');
+      opt.value = cat;
+      dl.appendChild(opt);
+
+      const chip = document.createElement('div');
+      chip.className = 'category-chip';
+      chip.style.setProperty('--chip-color', categoryColor(cat));
+      chip.textContent = cat;
+      chip.onclick = () => {
+        $('#f-category').value = cat;
+        updateCategoryChipActiveStates();
+      };
+      wrap.appendChild(chip);
+    });
+    updateCategoryChipActiveStates();
+  }
+
+  function updateCategoryChipActiveStates(){
+    const current = $('#f-category').value.trim();
+    $$('#category-chips .category-chip').forEach(chip => {
+      chip.classList.toggle('active', chip.textContent === current);
+    });
+  }
+
+  $('#f-category').addEventListener('input', updateCategoryChipActiveStates);
 
   // ---------------- Sheet (add/edit) ----------------
   function openSheet(entry){
@@ -1602,12 +1888,14 @@ const firebaseConfig = {
 
     $('#sheet-title-text').textContent = entry ? 'Edit Entry' : 'New Entry';
     $('#f-desc').value = entry ? entry.desc : '';
+    $('#f-category').value = entry ? (entry.category || '') : '';
     $('#f-amount').value = entry ? entry.amount : '';
     $('#f-date').value = entry ? entry.date : new Date().toISOString().slice(0,10);
     $('#f-vpa').value = entry ? (entry.vpa || '') : '';
     $('#delete-btn').style.display = entry ? 'block' : 'none';
     $('#upi-qr-panel').classList.remove('open');
     renderRecentPayees();
+    renderCategoryChips();
     updateVpaHint();
 
     updateTypeToggle();
@@ -1621,6 +1909,7 @@ const firebaseConfig = {
     $('#sheet-backdrop').classList.remove('show');
     $('#entry-sheet').classList.remove('show');
     $('#menu-sheet').classList.remove('show');
+    $('#insights-sheet').classList.remove('show');
     editingId = null;
     if(qrStream) stopQrScan();
   }
@@ -1642,6 +1931,7 @@ const firebaseConfig = {
   async function saveEntry(){
     if(!currentUser) return;
     const desc = $('#f-desc').value.trim();
+    const category = $('#f-category').value.trim();
     const amount = parseFloat($('#f-amount').value);
     const date = $('#f-date').value;
     const vpa = $('#f-vpa').value.trim();
@@ -1653,10 +1943,10 @@ const firebaseConfig = {
     $('#save-btn').disabled = true;
     try{
       if(editingId){
-        await updateDoc(doc(entriesCol(currentUser.uid), editingId), { desc, amount, date, type: activeType, vpa });
+        await updateDoc(doc(entriesCol(currentUser.uid), editingId), { desc, amount, date, type: activeType, vpa, category });
         toast('✓ Entry updated');
       } else {
-        await addDoc(entriesCol(currentUser.uid), { desc, amount, date, type: activeType, vpa, order: entries.length });
+        await addDoc(entriesCol(currentUser.uid), { desc, amount, date, type: activeType, vpa, category, order: entries.length });
         toast('✓ Entry saved');
       }
       closeSheet();
@@ -1998,8 +2288,8 @@ const firebaseConfig = {
 
   // ---------------- CSV export ----------------
   function exportCsv(){
-    const rows = [['Date','Description','Type','Amount']];
-    sortedEntries().forEach(e => rows.push([e.date, e.desc, e.type, e.amount]));
+    const rows = [['Date','Description','Category','Type','Amount']];
+    sortedEntries().forEach(e => rows.push([e.date, e.desc, e.category || '', e.type, e.amount]));
     const csv = rows.map(r => r.map(v => {
       const s = String(v).replace(/"/g,'""');
       return /[",\n]/.test(s) ? `"${s}"` : s;
@@ -2027,6 +2317,7 @@ const firebaseConfig = {
       <tr>
         <td>${escapeHtml(e.date)}</td>
         <td>${escapeHtml(e.desc)}</td>
+        <td>${escapeHtml(e.category || '—')}</td>
         <td class="type-${e.type.toLowerCase()}">${escapeHtml(e.type)}</td>
         <td class="amt">${e.type === 'Credit' ? '+' : '-'}₹${fmtMoneyPlain(e.amount)}</td>
       </tr>`).join('');
@@ -2061,7 +2352,7 @@ const firebaseConfig = {
     <div><div class="label">Net Balance</div><div class="val">₹${fmtMoneyPlain(net)}</div></div>
   </div>
   <table>
-    <thead><tr><th>Date</th><th>Description</th><th>Type</th><th style="text-align:right;">Amount</th></tr></thead>
+    <thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Type</th><th style="text-align:right;">Amount</th></tr></thead>
     <tbody>${rowsHtml}</tbody>
   </table>
 </body>
@@ -2074,6 +2365,117 @@ const firebaseConfig = {
     w.onload = () => { w.focus(); w.print(); };
     toast('📄 Opening print preview…');
   }
+
+  // ---------------- Insights: charts ----------------
+  function buildDonutSvg(segments, size, strokeWidth){
+    size = size || 176; strokeWidth = strokeWidth || 26;
+    const total = segments.reduce((s,x) => s + x.value, 0);
+    if(total <= 0) return '';
+    const r = (size - strokeWidth) / 2;
+    const cx = size / 2, cy = size / 2;
+    const circumference = 2 * Math.PI * r;
+    let offset = 0;
+    const circles = segments.map(seg => {
+      const frac = seg.value / total;
+      const dash = Math.max(frac * circumference - 1.5, 0); // small gap between segments
+      const gap = circumference - dash;
+      const circle = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${seg.color}" stroke-width="${strokeWidth}" stroke-dasharray="${dash} ${gap}" stroke-dashoffset="${-offset}" transform="rotate(-90 ${cx} ${cy})" stroke-linecap="round"/>`;
+      offset += frac * circumference;
+      return circle;
+    }).join('');
+    return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${circles}</svg>`;
+  }
+
+  function renderCategoryChart(){
+    const list = sortedEntries().filter(e =>
+      e.type === insightsCatType &&
+      (activeMonth === 'All' || monthKey(e.date) === activeMonth)
+    );
+    const map = {};
+    list.forEach(e => {
+      const cat = (e.category || '').trim() || 'Uncategorized';
+      map[cat] = (map[cat] || 0) + e.amount;
+    });
+    const segments = Object.entries(map)
+      .map(([label, value]) => ({ label, value, color: categoryColor(label) }))
+      .sort((a, b) => b.value - a.value);
+    const total = segments.reduce((s, x) => s + x.value, 0);
+
+    $('#donut-wrap').innerHTML = total > 0
+      ? buildDonutSvg(segments)
+      : '<p class="chart-empty">No ' + (insightsCatType === 'Debit' ? 'expenses' : 'income') + ' in this period</p>';
+    $('#donut-center-amt').textContent = total > 0 ? fmtMoney(total) : '';
+    $('#donut-center-lbl').textContent = total > 0 ? (insightsCatType === 'Debit' ? 'Total Spent' : 'Total Received') : '';
+
+    $('#category-legend').innerHTML = segments.map(s => `
+      <div class="legend-row">
+        <span class="legend-dot" style="background:${s.color}"></span>
+        <span class="legend-label">${escapeHtml(s.label)}</span>
+        <span class="legend-pct">${total ? Math.round(s.value / total * 100) : 0}%</span>
+        <span class="legend-amt">${fmtMoney(s.value)}</span>
+      </div>`).join('');
+  }
+
+  function renderTrendChart(){
+    let groups;
+    if(activeMonth === 'All'){
+      $('#trend-title').textContent = 'Trend (by month)';
+      const map = {};
+      sortedEntries().forEach(e => {
+        const k = monthKey(e.date);
+        if(!k) return;
+        if(!map[k]) map[k] = { label: monthLabel(k), credit: 0, debit: 0 };
+        if(e.type === 'Credit') map[k].credit += e.amount; else map[k].debit += e.amount;
+      });
+      groups = Object.keys(map).sort().map(k => map[k]);
+    } else {
+      $('#trend-title').textContent = 'Trend (by day)';
+      const map = {};
+      sortedEntries().filter(e => monthKey(e.date) === activeMonth).forEach(e => {
+        const k = e.date;
+        if(!map[k]) map[k] = { label: String(parseInt(k.slice(8,10), 10)), credit: 0, debit: 0 };
+        if(e.type === 'Credit') map[k].credit += e.amount; else map[k].debit += e.amount;
+      });
+      groups = Object.keys(map).sort().map(k => map[k]);
+    }
+
+    const container = $('#trend-chart');
+    if(!groups.length){
+      container.innerHTML = '<p class="chart-empty">No entries in this period</p>';
+      return;
+    }
+    const max = Math.max(1, ...groups.map(g => Math.max(g.credit, g.debit)));
+    container.innerHTML = groups.map(g => `
+      <div class="trend-col" title="${escapeHtml(g.label)}">
+        <div class="trend-bars">
+          <div class="trend-bar credit" style="height:${Math.max(2, Math.round(g.credit / max * 112))}px"></div>
+          <div class="trend-bar debit" style="height:${Math.max(2, Math.round(g.debit / max * 112))}px"></div>
+        </div>
+        <div class="trend-label">${escapeHtml(g.label)}</div>
+      </div>`).join('');
+  }
+
+  function openInsights(){
+    renderCategoryChart();
+    renderTrendChart();
+    $('#sheet-backdrop').classList.add('show');
+    $('#insights-sheet').classList.add('show');
+  }
+
+  $('#insights-tab-debit').addEventListener('click', () => {
+    insightsCatType = 'Debit';
+    $('#insights-tab-debit').classList.add('active');
+    $('#insights-tab-credit').classList.remove('active');
+    renderCategoryChart();
+  });
+  $('#insights-tab-credit').addEventListener('click', () => {
+    insightsCatType = 'Credit';
+    $('#insights-tab-credit').classList.add('active');
+    $('#insights-tab-debit').classList.remove('active');
+    renderCategoryChart();
+  });
+  $('#insights-close').addEventListener('click', closeSheet);
+  $('#menu-insights').addEventListener('click', () => { $('#menu-sheet').classList.remove('show'); openInsights(); });
 
   // ---------------- Wire up ----------------
   $('#fab').addEventListener('click', () => openSheet(null));
@@ -2104,9 +2506,9 @@ const firebaseConfig = {
     $('#menu-sheet').classList.add('show');
   });
 
-  $$('.chip').forEach(chip => {
+  $$('.filter-chips .chip').forEach(chip => {
     chip.addEventListener('click', () => {
-      $$('.chip').forEach(c => c.classList.remove('active'));
+      $$('.filter-chips .chip').forEach(c => c.classList.remove('active'));
       chip.classList.add('active');
       activeFilter = chip.dataset.filter;
       renderList();
