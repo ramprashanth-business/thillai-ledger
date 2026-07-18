@@ -571,6 +571,21 @@
     margin: -6px 0 12px;
     line-height:1.5;
   }
+  .vpa-hint{
+    display:none;
+    align-items:flex-start;
+    gap:6px;
+    font-size:11.5px;
+    color:var(--marigold-hi);
+    background: rgba(232,163,61,0.10);
+    border:1px solid rgba(232,163,61,0.28);
+    border-radius:10px;
+    padding:8px 10px;
+    margin:8px 0 0;
+    line-height:1.45;
+  }
+  .vpa-hint.show{ display:flex; }
+  .vpa-hint svg{ flex:0 0 auto; margin-top:1px; }
   .upi-btns{
     display:flex;
     gap:8px;
@@ -1191,11 +1206,20 @@
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
           </button>
         </div>
+        <div class="vpa-hint" id="vpa-hint">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg>
+          <span>Phone numbers only work as a payee if the person has linked that number as a "UPI Number" with their bank — most haven't. If GPay says "Limit Exceeded" right after you enter your PIN, that's usually this, not a real limit. Ask for their UPI ID instead (looks like <strong>name@bank</strong>) for a reliable payment.</span>
+        </div>
         <div class="recent-payees" id="recent-payees"></div>
       </div>
       <div class="upi-btns">
         <div class="upi-btn upi-btn-solo" data-app="gpay"><div class="upi-logo gpay">G</div>Open in GPay</div>
       </div>
+      <!-- Hidden real <a> used to hand off to the UPI app. iOS home-screen (standalone)
+           PWAs frequently swallow window.location.href navigations to custom schemes
+           without any error — but a genuine <a> click goes through WebKit's normal
+           link-activation path and reliably triggers the "Open in GPay?" handoff. -->
+      <a id="upi-native-link" href="#" style="display:none;" rel="noopener"></a>
       <div class="upi-qr-toggle" id="upi-qr-toggle">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h3M20 17v3.01"/></svg>
         <span>App didn't open? Scan QR instead</span>
@@ -1584,6 +1608,7 @@ const firebaseConfig = {
     $('#delete-btn').style.display = entry ? 'block' : 'none';
     $('#upi-qr-panel').classList.remove('open');
     renderRecentPayees();
+    updateVpaHint();
 
     updateTypeToggle();
 
@@ -1739,6 +1764,7 @@ const firebaseConfig = {
             if(!$('#f-desc').value.trim() && parsed.pn) $('#f-desc').value = parsed.pn;
             if(parsed.am) $('#f-amount').value = parsed.am;
             renderRecentPayees();
+            updateVpaHint();
             toast('✓ Scanned ' + (parsed.pn || parsed.pa));
             stopQrScan();
             return;
@@ -1769,6 +1795,7 @@ const firebaseConfig = {
         const tel = (c.tel && c.tel[0]) ? c.tel[0].replace(/[^\d+]/g, '') : '';
         if(tel) $('#f-vpa').value = tel;
         if(!$('#f-desc').value.trim() && c.name && c.name[0]) $('#f-desc').value = c.name[0];
+        updateVpaHint();
         if($('#upi-qr-panel').classList.contains('open')) refreshQr();
       }
     }catch(e){
@@ -1796,6 +1823,7 @@ const firebaseConfig = {
       chip.innerHTML = `<span class="avatar">${initial}</span><span>${escapeHtml(p.desc)}</span>`;
       chip.onclick = () => {
         $('#f-vpa').value = p.vpa;
+        updateVpaHint();
         if($('#upi-qr-panel').classList.contains('open')) refreshQr();
       };
       wrap.appendChild(chip);
@@ -1874,6 +1902,15 @@ const firebaseConfig = {
     });
   });
 
+  // Warn early when the payee looks like a bare phone number — this is the
+  // #1 cause of GPay's "Limit Exceeded" message appearing right after PIN
+  // entry for payments started from outside GPay (see resolvePayee below).
+  function updateVpaHint(){
+    const payee = resolvePayee($('#f-vpa').value);
+    $('#vpa-hint').classList.toggle('show', !!payee.isPhone);
+  }
+  $('#f-vpa').addEventListener('input', updateVpaHint);
+
   $('#upi-copy-btn').addEventListener('click', async () => {
     const link = genericUpiLink();
     const btn = $('#upi-copy-btn');
@@ -1918,7 +1955,18 @@ const firebaseConfig = {
       document.addEventListener('visibilitychange', onHide);
 
       paymentAttempted = true;
-      window.location.href = appUrl;
+
+      // iOS installed-PWA (standalone) note: window.location.href to a custom
+      // scheme (gpay://…) is silently dropped by WebKit in standalone mode —
+      // no error, no navigation, nothing. A real <a> click goes through
+      // WebKit's normal link-activation path instead and reliably hands off
+      // to the app. We keep window.location.href as a fallback for browsers
+      // where the synthetic click for some reason doesn't fire.
+      const nativeLink = $('#upi-native-link');
+      nativeLink.href = appUrl;
+      nativeLink.click();
+      setTimeout(() => { if(!handled) window.location.href = appUrl; }, 400);
+
       toast('Opening ' + btn.textContent.trim() + '… (' + appUrl.split('?')[0] + ')');
 
       // If GPay specifically doesn't open, fall back straight to the QR code —
