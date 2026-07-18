@@ -366,6 +366,29 @@
   .day-net.pos{ color:var(--credit); }
   .day-net.neg{ color:var(--debit); }
 
+  .entry-card-wrap{
+    position:relative;
+    border-radius:14px;
+    margin-bottom:8px;
+    overflow:hidden;
+  }
+  .entry-delete-bg{
+    position:absolute;
+    inset:0;
+    background: linear-gradient(90deg, transparent 0%, var(--debit) 55%);
+    border-radius:14px;
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    padding-right:18px;
+    color:#fff;
+    gap:6px;
+    font-size:11.5px;
+    font-weight:700;
+    font-family:'IBM Plex Mono', monospace;
+    cursor:pointer;
+  }
+  .entry-delete-bg svg{ flex:0 0 auto; }
   .entry-card{
     display:flex;
     align-items:center;
@@ -374,10 +397,14 @@
     border:1px solid var(--hairline);
     border-radius:14px;
     padding:12px 13px;
-    margin-bottom:8px;
+    margin-bottom:0;
     cursor:pointer;
-    transition: transform .12s ease, background .15s ease;
+    position:relative;
+    touch-action:pan-y;
+    transition: transform .15s ease, background .15s ease;
+    will-change:transform;
   }
+  .entry-card.dragging{ transition:none; }
   .type-bar{
     width:3px;
     align-self:stretch;
@@ -603,258 +630,6 @@
     margin-top:10px;
     font-family:'Manrope', sans-serif;
   }
-
-  /* UPI quick pay */
-  .upi-section{
-    margin-top:4px;
-    margin-bottom:16px;
-    padding-top:14px;
-    border-top:1px dashed var(--hairline);
-  }
-  .upi-section .field-note{
-    font-size:11.5px;
-    color:var(--paper-faint);
-    margin: -6px 0 12px;
-    line-height:1.5;
-  }
-  .vpa-hint{
-    display:none;
-    align-items:flex-start;
-    gap:6px;
-    font-size:11.5px;
-    color:var(--marigold-hi);
-    background: rgba(232,163,61,0.10);
-    border:1px solid rgba(232,163,61,0.28);
-    border-radius:10px;
-    padding:8px 10px;
-    margin:8px 0 0;
-    line-height:1.45;
-  }
-  .vpa-hint.show{ display:flex; }
-  .vpa-hint svg{ flex:0 0 auto; margin-top:1px; }
-  .upi-btns{
-    display:flex;
-    gap:8px;
-  }
-  .upi-btn{
-    flex:1;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap:6px;
-    padding:11px 4px;
-    border-radius:12px;
-    border:1.5px solid var(--hairline);
-    background:rgba(244,239,227,0.04);
-    cursor:pointer;
-    font-size:10.5px;
-    font-weight:700;
-    color:var(--paper-dim);
-    transition: all .15s ease;
-  }
-  .upi-btn:active{ transform:scale(0.94); background:rgba(244,239,227,0.09); }
-  .upi-logo{
-    width:26px; height:26px;
-    border-radius:7px;
-    display:flex; align-items:center; justify-content:center;
-    font-family:'IBM Plex Mono', monospace;
-    font-weight:800;
-    font-size:11px;
-    color:#fff;
-  }
-  .upi-logo.gpay{ background:#fff; color:#4285F4; }
-  .upi-logo.phonepe{ background:#5F259F; }
-  .upi-logo.paytm{ background:#00BAF2; }
-
-  #qr-scan-overlay{
-    position:fixed;
-    inset:0;
-    background:#000;
-    z-index:200;
-    display:none;
-    align-items:center;
-    justify-content:center;
-    overflow:hidden;
-  }
-  #qr-scan-overlay.show{ display:flex; }
-  #qr-scan-video{
-    position:absolute;
-    inset:0;
-    width:100%; height:100%;
-    object-fit:cover;
-  }
-  .qr-scan-frame{
-    position:relative;
-    width:min(72vw, 300px);
-    height:min(72vw, 300px);
-    z-index:1;
-  }
-  .qr-scan-frame::before, .qr-scan-frame::after,
-  .qr-scan-corner::before, .qr-scan-corner::after{
-    content:'';
-    position:absolute;
-    width:34px; height:34px;
-    border:3px solid var(--marigold-hi);
-  }
-  .qr-scan-frame::before{ top:0; left:0; border-right:none; border-bottom:none; border-radius:10px 0 0 0; }
-  .qr-scan-frame::after{ top:0; right:0; border-left:none; border-bottom:none; border-radius:0 10px 0 0; }
-  .qr-scan-corner::before{ bottom:0; left:0; border-right:none; border-top:none; border-radius:0 0 0 10px; }
-  .qr-scan-corner::after{ bottom:0; right:0; border-left:none; border-top:none; border-radius:0 0 10px 0; }
-  .qr-scan-frame{ box-shadow: 0 0 0 2000px rgba(0,0,0,0.55); border-radius:14px; }
-  .qr-scan-frame > .qr-scan-corner{ position:absolute; inset:0; }
-  .qr-scan-frame{ animation: qr-scan-pulse 2s ease-in-out infinite; }
-  @keyframes qr-scan-pulse{
-    0%, 100%{ box-shadow: 0 0 0 2000px rgba(0,0,0,0.55), 0 0 24px rgba(232,163,61,0.15) inset; }
-    50%{ box-shadow: 0 0 0 2000px rgba(0,0,0,0.55), 0 0 40px rgba(232,163,61,0.35) inset; }
-  }
-  .qr-scan-topbar{
-    position:absolute;
-    top:0; left:0; right:0;
-    padding:calc(env(safe-area-inset-top, 0px) + 16px) 16px 16px;
-    display:flex; align-items:center; gap:12px;
-    background:linear-gradient(rgba(0,0,0,0.6), transparent);
-    color:var(--paper);
-    font-weight:700;
-    font-size:14px;
-    z-index:2;
-  }
-  .qr-scan-close{
-    width:34px; height:34px;
-    border-radius:50%;
-    border:none;
-    background:rgba(255,255,255,0.12);
-    color:#fff;
-    font-size:16px;
-    display:flex; align-items:center; justify-content:center;
-    cursor:pointer;
-  }
-  .qr-scan-hint{
-    position:absolute;
-    bottom:calc(env(safe-area-inset-bottom, 0px) + 34px);
-    left:0; right:0;
-    text-align:center;
-    color:var(--paper-dim);
-    font-size:12.5px;
-    z-index:2;
-  }
-
-  .vpa-input-row input{ flex:1; min-width:0; }
-  .vpa-input-row{ display:flex; gap:8px; align-items:stretch; }
-  .contact-pick-btn{
-    flex:0 0 auto;
-    width:44px;
-    border-radius:12px;
-    border:1.5px solid var(--hairline);
-    background:rgba(244,239,227,0.04);
-    color:var(--marigold-hi);
-    display:flex; align-items:center; justify-content:center;
-    cursor:pointer;
-    transition: all .15s ease;
-  }
-  .contact-pick-btn:active{ transform:scale(0.92); background:rgba(244,239,227,0.09); }
-
-  .recent-payees{
-    display:flex;
-    gap:7px;
-    overflow-x:auto;
-    margin-top:8px;
-    padding-bottom:2px;
-    scrollbar-width:none;
-  }
-  .recent-payees::-webkit-scrollbar{ display:none; }
-  .recent-payees:empty{ display:none; }
-  .payee-chip{
-    flex:0 0 auto;
-    display:flex; align-items:center; gap:6px;
-    padding:6px 12px 6px 6px;
-    border-radius:999px;
-    border:1px solid var(--hairline);
-    background:rgba(244,239,227,0.04);
-    cursor:pointer;
-    font-size:11.5px;
-    color:var(--paper-dim);
-    white-space:nowrap;
-    transition: all .15s ease;
-  }
-  .payee-chip:active{ transform:scale(0.94); background:rgba(244,239,227,0.1); }
-  .payee-chip .avatar{
-    width:22px; height:22px;
-    border-radius:50%;
-    background: linear-gradient(155deg, var(--marigold-hi), var(--brass));
-    color:#1a1a1a;
-    display:flex; align-items:center; justify-content:center;
-    font-size:10.5px;
-    font-weight:800;
-    font-family:'IBM Plex Mono', monospace;
-    flex:0 0 auto;
-  }
-
-  .upi-qr-toggle{
-    display:flex; align-items:center; gap:6px;
-    margin-top:12px;
-    font-size:11.5px;
-    color:var(--marigold-hi);
-    cursor:pointer;
-    width:fit-content;
-  }
-  .upi-qr-toggle svg{ flex:0 0 auto; }
-  .upi-qr-panel{
-    max-height:0;
-    overflow:hidden;
-    transition: max-height .35s cubic-bezier(.22,1,.36,1);
-  }
-  .upi-qr-panel.open{ max-height:340px; }
-  .upi-qr-inner{
-    position:relative;
-    margin-top:14px;
-    padding:18px;
-    border-radius:16px;
-    background: rgba(0,0,0,0.18);
-    border:1px solid var(--hairline);
-    display:flex; flex-direction:column; align-items:center; gap:10px;
-    overflow:hidden;
-  }
-  .upi-qr-glow{
-    position:absolute;
-    inset:-60px;
-    background: conic-gradient(from 0deg, var(--marigold), var(--credit), var(--marigold-hi), var(--brass), var(--marigold));
-    filter: blur(30px);
-    opacity:0.35;
-    animation: ring-spin 8s linear infinite;
-    z-index:0;
-    pointer-events:none;
-  }
-  @media (prefers-reduced-motion: reduce){ .upi-qr-glow{ animation:none; } }
-  .upi-qr-inner img{
-    position:relative; z-index:1;
-    width:176px; height:176px;
-    border-radius:12px;
-    background:#fff;
-    padding:8px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.35);
-  }
-  .upi-qr-caption{
-    position:relative; z-index:1;
-    font-size:11px;
-    color:var(--paper-faint);
-    text-align:center;
-  }
-  .upi-copy-btn{
-    position:relative; z-index:1;
-    display:flex; align-items:center; gap:6px;
-    background:rgba(244,239,227,0.06);
-    border:1px solid var(--hairline);
-    color:var(--paper-dim);
-    font-size:11.5px;
-    font-weight:600;
-    padding:8px 14px;
-    border-radius:10px;
-    cursor:pointer;
-    font-family:'Manrope', sans-serif;
-    transition: all .15s ease;
-  }
-  .upi-copy-btn:active{ transform:scale(0.95); background:rgba(244,239,227,0.12); }
-  .upi-copy-btn.copied{ color:var(--credit); border-color:var(--credit); }
 
   /* Toast */
   #toast-container{
@@ -1197,7 +972,7 @@
 
   /* FAB ripple container needs relative + overflow hidden */
   #fab{ overflow:hidden; }
-  .icon-btn, .save-btn, .upi-btn, .chip, .month-tab{ position:relative; overflow:hidden; }
+  .icon-btn, .save-btn, .chip, .month-tab{ position:relative; overflow:hidden; }
 </style>
 </head>
 <body>
@@ -1313,17 +1088,6 @@
 
   <div id="sheet-backdrop"></div>
 
-  <div id="qr-scan-overlay">
-    <video id="qr-scan-video" playsinline muted></video>
-    <canvas id="qr-scan-canvas" style="display:none;"></canvas>
-    <div class="qr-scan-frame"><div class="qr-scan-corner"></div></div>
-    <div class="qr-scan-topbar">
-      <button type="button" id="qr-scan-close" class="qr-scan-close">✕</button>
-      <span>Scan shop's UPI QR code</span>
-    </div>
-    <div class="qr-scan-hint" id="qr-scan-hint">Point your camera at the QR code</div>
-  </div>
-
   <div id="entry-sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-title">
@@ -1359,50 +1123,6 @@
     <div class="field">
       <label>Date</label>
       <input type="date" id="f-date">
-    </div>
-
-    <div class="upi-section" id="upi-section">
-      <label style="font-family:'IBM Plex Mono', monospace; font-size:10.5px; letter-spacing:0.08em; text-transform:uppercase; color:var(--paper-faint); display:block; margin-bottom:6px;">Quick pay (optional)</label>
-      <p class="field-note">Opens GPay with the details pre-filled. Some banks cap payments started from outside GPay itself — if it's declined, scan the QR below with GPay's own scanner instead, or pay directly in GPay and just log it here.</p>
-      <div class="field" style="margin-bottom:10px;">
-        <div class="vpa-input-row">
-          <input type="text" id="f-vpa" placeholder="Payee UPI ID or phone (optional)" autocomplete="tel" name="payee-contact">
-          <button type="button" id="scan-qr-btn" class="contact-pick-btn" title="Scan a shop's QR code">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h3M20 17v3.01"/></svg>
-          </button>
-          <button type="button" id="contact-pick-btn" class="contact-pick-btn" title="Pick from contacts" style="display:none;">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
-          </button>
-        </div>
-        <div class="vpa-hint" id="vpa-hint">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg>
-          <span>Phone numbers only work as a payee if the person has linked that number as a "UPI Number" with their bank — most haven't. If GPay says "Limit Exceeded" right after you enter your PIN, that's usually this, not a real limit. Ask for their UPI ID instead (looks like <strong>name@bank</strong>) for a reliable payment.</span>
-        </div>
-        <div class="recent-payees" id="recent-payees"></div>
-      </div>
-      <div class="upi-btns">
-        <div class="upi-btn upi-btn-solo" data-app="gpay"><div class="upi-logo gpay">G</div>Open in GPay</div>
-      </div>
-      <!-- Hidden real <a> used to hand off to the UPI app. iOS home-screen (standalone)
-           PWAs frequently swallow window.location.href navigations to custom schemes
-           without any error — but a genuine <a> click goes through WebKit's normal
-           link-activation path and reliably triggers the "Open in GPay?" handoff. -->
-      <a id="upi-native-link" href="#" style="display:none;" rel="noopener"></a>
-      <div class="upi-qr-toggle" id="upi-qr-toggle">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h3M20 17v3.01"/></svg>
-        <span>App didn't open? Scan QR instead</span>
-      </div>
-      <div class="upi-qr-panel" id="upi-qr-panel">
-        <div class="upi-qr-glow"></div>
-        <div class="upi-qr-inner">
-          <img id="upi-qr-img" alt="UPI QR code" width="176" height="176">
-          <div class="upi-qr-caption" id="upi-qr-caption">Scan with any UPI app</div>
-          <button type="button" class="upi-copy-btn" id="upi-copy-btn">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-            Copy payment link
-          </button>
-        </div>
-      </div>
     </div>
 
     <button class="save-btn" id="save-btn">Save Entry</button>
@@ -1647,7 +1367,7 @@ const firebaseConfig = {
     const batch = writeBatch(db);
     SEED_ENTRIES.forEach(e => {
       const ref = doc(entriesCol(uid));
-      batch.set(ref, { desc: e.desc, amount: e.amount, date: e.date, type: e.type, order: e.order, vpa: '', category: '' });
+      batch.set(ref, { desc: e.desc, amount: e.amount, date: e.date, type: e.type, order: e.order, category: '' });
     });
     batch.set(userRef, { seeded: true }, { merge: true });
     await batch.commit();
@@ -1777,8 +1497,17 @@ const firebaseConfig = {
 
     if(!list.length){
       wrap.innerHTML = `<div class="empty-state">
-        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="15" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
-        <p>No entries match here.<br>Tap the ＋ button to add one.</p>
+        <svg width="120" height="46" viewBox="0 0 120 46" fill="none">
+          <path d="M4 6 Q60 46 116 6" stroke="var(--hairline)" stroke-width="1.5" fill="none"/>
+          <circle cx="12" cy="10.7" r="4.5" fill="var(--marigold)"/>
+          <circle cx="28" cy="21.6" r="4.5" fill="var(--marigold-hi)"/>
+          <circle cx="46" cy="29.3" r="4.5" fill="var(--brass)"/>
+          <circle cx="60" cy="31.5" r="4.5" fill="var(--marigold)"/>
+          <circle cx="74" cy="29.3" r="4.5" fill="var(--brass)"/>
+          <circle cx="92" cy="21.6" r="4.5" fill="var(--marigold-hi)"/>
+          <circle cx="108" cy="10.7" r="4.5" fill="var(--marigold)"/>
+        </svg>
+        <p>Nothing logged here yet.<br>Tap ＋ to add your first entry.</p>
       </div>`;
       return;
     }
@@ -1804,6 +1533,13 @@ const firebaseConfig = {
       group.appendChild(heading);
 
       dayEntries.slice().reverse().forEach((e, i) => {
+        const cardWrap = document.createElement('div');
+        cardWrap.className = 'entry-card-wrap';
+        cardWrap.innerHTML = `
+          <div class="entry-delete-bg">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6"/></svg>
+            Delete
+          </div>`;
         const card = document.createElement('div');
         card.className = 'entry-card';
         card.style.animationDelay = (i * 0.03) + 's';
@@ -1816,8 +1552,10 @@ const firebaseConfig = {
           </div>
           <div class="entry-amt ${e.type}">${e.type === 'Credit' ? '+' : '−'}${fmtMoney(e.amount)}</div>
         `;
-        card.onclick = () => openSheet(e);
-        group.appendChild(card);
+        card.onclick = () => { if(!cardWrap.dataset.swiped) openSheet(e); };
+        cardWrap.appendChild(card);
+        wireSwipeToDelete(cardWrap, card, e);
+        group.appendChild(cardWrap);
         requestAnimationFrame(() => card.classList.add('revealed'));
       });
 
@@ -1906,12 +1644,8 @@ const firebaseConfig = {
     $('#f-category').value = entry ? (entry.category || '') : '';
     $('#f-amount').value = entry ? entry.amount : '';
     $('#f-date').value = entry ? entry.date : new Date().toISOString().slice(0,10);
-    $('#f-vpa').value = entry ? (entry.vpa || '') : '';
     $('#delete-btn').style.display = entry ? 'block' : 'none';
-    $('#upi-qr-panel').classList.remove('open');
-    renderRecentPayees();
     renderCategoryChips();
-    updateVpaHint();
 
     updateTypeToggle();
 
@@ -1926,14 +1660,12 @@ const firebaseConfig = {
     $('#menu-sheet').classList.remove('show');
     $('#insights-sheet').classList.remove('show');
     editingId = null;
-    if(qrStream) stopQrScan();
   }
 
   function updateTypeToggle(){
     $$('.type-opt').forEach(el => {
       el.classList.toggle('active', el.dataset.type === activeType);
     });
-    $('.upi-section').style.display = activeType === 'Debit' ? 'block' : 'none';
   }
 
   $$('.type-opt').forEach(el => {
@@ -1949,7 +1681,6 @@ const firebaseConfig = {
     const category = $('#f-category').value.trim();
     const amount = parseFloat($('#f-amount').value);
     const date = $('#f-date').value;
-    const vpa = $('#f-vpa').value.trim();
 
     if(!desc){ toast('⚠ Add a description'); $('#f-desc').focus(); return; }
     if(!amount || amount <= 0){ toast('⚠ Enter a valid amount'); $('#f-amount').focus(); return; }
@@ -1958,10 +1689,10 @@ const firebaseConfig = {
     $('#save-btn').disabled = true;
     try{
       if(editingId){
-        await updateDoc(doc(entriesCol(currentUser.uid), editingId), { desc, amount, date, type: activeType, vpa, category });
+        await updateDoc(doc(entriesCol(currentUser.uid), editingId), { desc, amount, date, type: activeType, category });
         toast('✓ Entry updated');
       } else {
-        await addDoc(entriesCol(currentUser.uid), { desc, amount, date, type: activeType, vpa, category, order: entries.length });
+        await addDoc(entriesCol(currentUser.uid), { desc, amount, date, type: activeType, category, order: entries.length });
         toast('✓ Entry saved');
       }
       closeSheet();
@@ -1986,338 +1717,76 @@ const firebaseConfig = {
     }
   }
 
-  // ---------------- Shop QR scanning ----------------
-  let qrJsPromise = null;
-  function loadJsQr(){
-    if(window.jsQR) return Promise.resolve();
-    if(qrJsPromise) return qrJsPromise;
-    qrJsPromise = new Promise((resolve, reject) => {
-      const s = document.createElement('script');
-      s.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js';
-      s.onload = resolve;
-      s.onerror = () => reject(new Error('load failed'));
-      document.head.appendChild(s);
+  async function deleteEntryById(id, cardWrap){
+    if(!currentUser) return;
+    try{
+      await deleteDoc(doc(entriesCol(currentUser.uid), id));
+      toast('🗑 Entry deleted');
+    }catch(e){
+      console.error(e);
+      toast('⚠ Could not delete — check connection');
+      if(cardWrap) cardWrap.querySelector('.entry-card').style.transform = 'translateX(0)';
+    }
+  }
+
+  // Swipe-left-to-delete: drag the card left to reveal the delete action
+  // underneath, release past the threshold to snap open, tap the revealed
+  // strip to confirm. A short drag or a normal tap just opens the entry.
+  const SWIPE_OPEN_PX = -84;
+  function wireSwipeToDelete(cardWrap, card, entry){
+    let startX = 0, startY = 0, dx = 0, dragging = false, decided = false, isHorizontal = false;
+
+    card.addEventListener('pointerdown', (ev) => {
+      if(ev.pointerType === 'mouse' && ev.button !== 0) return;
+      startX = ev.clientX; startY = ev.clientY; dx = 0;
+      dragging = true; decided = false; isHorizontal = false;
+      card.classList.add('dragging');
     });
-    return qrJsPromise;
-  }
 
-  let qrStream = null;
-  let qrRafId = null;
+    card.addEventListener('pointermove', (ev) => {
+      if(!dragging) return;
+      const rawDx = ev.clientX - startX;
+      const rawDy = ev.clientY - startY;
+      if(!decided){
+        if(Math.abs(rawDx) < 6 && Math.abs(rawDy) < 6) return;
+        isHorizontal = Math.abs(rawDx) > Math.abs(rawDy);
+        decided = true;
+        if(isHorizontal) card.setPointerCapture(ev.pointerId);
+      }
+      if(!isHorizontal) return;
+      dx = Math.min(0, Math.max(rawDx, SWIPE_OPEN_PX - 20));
+      card.style.transform = `translateX(${dx}px)`;
+      ev.preventDefault();
+    });
 
-  function parseUpiString(text){
-    try{
-      const withScheme = text.trim();
-      const qIndex = withScheme.indexOf('?');
-      if(qIndex === -1 || !/^[a-zA-Z0-9]+:\/\//.test(withScheme)) return null;
-      const params = new URLSearchParams(withScheme.slice(qIndex + 1));
-      const pa = params.get('pa');
-      if(!pa) return null;
-      return {
-        pa,
-        pn: params.get('pn') || '',
-        am: params.get('am') || ''
-      };
-    }catch(e){ return null; }
-  }
-
-  async function stopQrScan(){
-    if(qrRafId) cancelAnimationFrame(qrRafId);
-    qrRafId = null;
-    if(qrStream){
-      qrStream.getTracks().forEach(t => t.stop());
-      qrStream = null;
-    }
-    $('#qr-scan-overlay').classList.remove('show');
-  }
-
-  async function startQrScan(){
-    try{
-      await loadJsQr();
-    }catch(e){
-      toast('⚠ Could not load scanner — check your connection');
-      return;
-    }
-    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
-      toast('⚠ Camera not supported on this browser');
-      return;
-    }
-    try{
-      qrStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-    }catch(e){
-      toast('⚠ Camera permission denied');
-      return;
-    }
-    const video = $('#qr-scan-video');
-    const canvas = $('#qr-scan-canvas');
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    video.srcObject = qrStream;
-    await video.play();
-    $('#qr-scan-overlay').classList.add('show');
-
-    const tick = () => {
-      if(!qrStream) return;
-      if(video.readyState === video.HAVE_ENOUGH_DATA){
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const code = window.jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts: 'attemptBoth' });
-        if(code && code.data){
-          const parsed = parseUpiString(code.data);
-          if(parsed){
-            $('#f-vpa').value = parsed.pa;
-            if(!$('#f-desc').value.trim() && parsed.pn) $('#f-desc').value = parsed.pn;
-            if(parsed.am) $('#f-amount').value = parsed.am;
-            renderRecentPayees();
-            updateVpaHint();
-            toast('✓ Scanned ' + (parsed.pn || parsed.pa));
-            stopQrScan();
-            return;
-          } else {
-            const snippet = code.data.length > 40 ? code.data.slice(0, 40) + '…' : code.data;
-            $('#qr-scan-hint').textContent = "Scanned, but not a standard UPI link (" + snippet + ") — try another";
-          }
+    function endDrag(){
+      if(!dragging) return;
+      dragging = false;
+      card.classList.remove('dragging');
+      if(isHorizontal){
+        if(dx <= SWIPE_OPEN_PX / 1.6){
+          card.style.transform = `translateX(${SWIPE_OPEN_PX}px)`;
+          cardWrap.dataset.swiped = '1';
+        } else {
+          card.style.transform = 'translateX(0)';
+          delete cardWrap.dataset.swiped;
         }
       }
-      qrRafId = requestAnimationFrame(tick);
-    };
-    qrRafId = requestAnimationFrame(tick);
-  }
-
-  $('#scan-qr-btn').addEventListener('click', startQrScan);
-  $('#qr-scan-close').addEventListener('click', stopQrScan);
-
-  // ---------------- Contact book + recent payees ----------------
-  const contactsSupported = !!(navigator.contacts && navigator.contacts.select && window.ContactsManager);
-  if(contactsSupported){ $('#contact-pick-btn').style.display = 'flex'; }
-
-  $('#contact-pick-btn').addEventListener('click', async () => {
-    try{
-      const props = ['tel', 'name'];
-      const contacts = await navigator.contacts.select(props, { multiple: false });
-      if(contacts && contacts.length){
-        const c = contacts[0];
-        const tel = (c.tel && c.tel[0]) ? c.tel[0].replace(/[^\d+]/g, '') : '';
-        if(tel) $('#f-vpa').value = tel;
-        if(!$('#f-desc').value.trim() && c.name && c.name[0]) $('#f-desc').value = c.name[0];
-        updateVpaHint();
-        if($('#upi-qr-panel').classList.contains('open')) refreshQr();
-      }
-    }catch(e){
-      if(e.name !== 'AbortError') toast('⚠ Could not open contacts');
+      isHorizontal = false; decided = false;
     }
-  });
+    card.addEventListener('pointerup', endDrag);
+    card.addEventListener('pointercancel', endDrag);
 
-  function renderRecentPayees(){
-    const wrap = $('#recent-payees');
-    wrap.innerHTML = '';
-    const seen = new Set();
-    const recents = [];
-    for(const e of sortedEntries().slice().reverse()){
-      if(!e.vpa || !e.vpa.trim()) continue;
-      const key = e.vpa.trim().toLowerCase();
-      if(seen.has(key)) continue;
-      seen.add(key);
-      recents.push({ vpa: e.vpa.trim(), desc: e.desc || e.vpa });
-      if(recents.length >= 8) break;
-    }
-    recents.forEach(p => {
-      const chip = document.createElement('div');
-      chip.className = 'payee-chip';
-      const initial = (p.desc || '?').trim().charAt(0).toUpperCase() || '?';
-      chip.innerHTML = `<span class="avatar">${initial}</span><span>${escapeHtml(p.desc)}</span>`;
-      chip.onclick = () => {
-        $('#f-vpa').value = p.vpa;
-        updateVpaHint();
-        if($('#upi-qr-panel').classList.contains('open')) refreshQr();
-      };
-      wrap.appendChild(chip);
-    });
-  }
-
-  // ---------------- UPI deep links ----------------
-  function resolvePayee(raw){
-    const v = raw.trim();
-    if(!v) return { pa: '', ok: true };
-    if(v.includes('@')) return { pa: v, ok: true }; // standard VPA e.g. name@bank
-    const digits = v.replace(/[\s\-()]/g, '').replace(/^\+?91/, '').replace(/^0+/, '');
-    if(/^[6-9]\d{9}$/.test(digits)){
-      // NPCI "UPI Number" lets a 10-digit mobile act as the payee address directly,
-      // but only if that number has been linked as a UPI Number by its owner.
-      return { pa: digits, ok: true, isPhone: true };
-    }
-    return { pa: '', ok: false };
-  }
-
-  function upiParams(){
-    const amount = parseFloat($('#f-amount').value) || 0;
-    const desc = $('#f-desc').value.trim() || 'Payment';
-    const payee = resolvePayee($('#f-vpa').value);
-    const params = new URLSearchParams();
-    if(payee.pa) params.set('pa', payee.pa);
-    // 'pn' must be the PAYEE's name, not our own — a mismatch here is a real
-    // fraud-check trigger on the bank/NPCI side and can cause false declines.
-    params.set('pn', desc || 'Payee');
-    if(amount > 0) params.set('am', amount.toFixed(2));
-    params.set('cu', 'INR');
-    params.set('tn', desc);
-    // Unique transaction reference — expected by the UPI intent spec; missing it
-    // can make some banks' risk engines treat the payment as higher-risk.
-    params.set('tr', 'TL' + Date.now().toString(36).toUpperCase());
-    return { params, payee };
-  }
-
-  function buildUpiUrl(scheme){
-    const { params } = upiParams();
-    const qs = params.toString();
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-    switch(scheme){
-      case 'gpay': return (isIOS ? 'gpay://upi/pay?' : 'tez://upi/pay?') + qs;
-      default: return 'upi://pay?' + qs;
-    }
-  }
-
-  function genericUpiLink(){
-    const { params } = upiParams();
-    return 'upi://pay?' + params.toString();
-  }
-
-  function refreshQr(){
-    const link = genericUpiLink();
-    const encoded = encodeURIComponent(link);
-    $('#upi-qr-img').src = 'https://api.qrserver.com/v1/create-qr-code/?size=352x352&margin=6&data=' + encoded;
-    const payee = resolvePayee($('#f-vpa').value);
-    $('#upi-qr-caption').textContent = payee.pa
-      ? 'Scan with any UPI app to pay ' + payee.pa
-      : 'Add a payee UPI ID or number above, then scan';
-  }
-
-  function setQrOpen(open){
-    $('#upi-qr-panel').classList.toggle('open', open);
-    if(open) refreshQr();
-  }
-
-  $('#upi-qr-toggle').addEventListener('click', () => {
-    setQrOpen(!$('#upi-qr-panel').classList.contains('open'));
-  });
-
-  ['f-amount','f-desc','f-vpa'].forEach(id => {
-    $('#' + id).addEventListener('input', () => {
-      if($('#upi-qr-panel').classList.contains('open')) refreshQr();
-    });
-  });
-
-  // Warn early when the payee looks like a bare phone number — this is the
-  // #1 cause of GPay's "Limit Exceeded" message appearing right after PIN
-  // entry for payments started from outside GPay (see resolvePayee below).
-  function updateVpaHint(){
-    const payee = resolvePayee($('#f-vpa').value);
-    $('#vpa-hint').classList.toggle('show', !!payee.isPhone);
-  }
-  $('#f-vpa').addEventListener('input', updateVpaHint);
-
-  $('#upi-copy-btn').addEventListener('click', async () => {
-    const link = genericUpiLink();
-    const btn = $('#upi-copy-btn');
-    try{
-      await navigator.clipboard.writeText(link);
-    }catch(e){
-      const ta = document.createElement('textarea');
-      ta.value = link;
-      ta.style.position = 'fixed';
-      ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.select();
-      try{ document.execCommand('copy'); }catch(err){}
-      ta.remove();
-    }
-    btn.classList.add('copied');
-    const original = btn.innerHTML;
-    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg> Copied';
-    toast('✓ Payment link copied');
-    setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = original; }, 1800);
-  });
-
-  let paymentAttempted = false;
-
-  $$('.upi-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const app = btn.dataset.app;
-      const payee = resolvePayee($('#f-vpa').value);
-      if(!payee.ok){
-        toast('⚠ Enter a valid UPI ID (name@bank) or 10-digit mobile number');
-        $('#f-vpa').focus();
+    cardWrap.querySelector('.entry-delete-bg').addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      if(!confirm('Delete this entry? This cannot be undone.')) {
+        card.style.transform = 'translateX(0)';
+        delete cardWrap.dataset.swiped;
         return;
       }
-      if(!payee.pa){
-        toast('⚠ Add a payee UPI ID or number first');
-        $('#f-vpa').focus();
-        return;
-      }
-      // Gate on bare phone numbers: this is the #1 cause of the "you've
-      // exceeded the bank limit" message right after PIN entry — GPay lets
-      // the payment get all the way to the PIN screen even when the number
-      // isn't linked as a UPI Number, then the bank silently declines it.
-      // There's no API a web app can call to check this in advance, so the
-      // best fix is to stop and confirm before the money-losing round trip.
-      if(payee.isPhone){
-        const proceed = confirm(
-          'This will only work if ' + payee.pa + ' has been linked as a "UPI Number" by its owner — most people haven\'t done this.\n\n' +
-          'If it isn\'t linked, GPay will still let you enter your PIN, then fail with "exceeded bank limit" (this isn\'t a real limit).\n\n' +
-          'Ask them for their UPI ID (looks like name@bank) instead if you can.\n\n' +
-          'Tap OK to try anyway with this phone number, or Cancel to go back and enter a UPI ID.'
-        );
-        if(!proceed){
-          $('#f-vpa').focus();
-          return;
-        }
-      }
-      const appUrl = buildUpiUrl(app);
-      let handled = false;
-      const onHide = () => { if(document.hidden) handled = true; };
-      document.addEventListener('visibilitychange', onHide);
-
-      paymentAttempted = true;
-
-      // iOS installed-PWA (standalone) note: window.location.href to a custom
-      // scheme (gpay://…) is silently dropped by WebKit in standalone mode —
-      // no error, no navigation, nothing. A real <a> click goes through
-      // WebKit's normal link-activation path instead and reliably hands off
-      // to the app. We keep window.location.href as a fallback for browsers
-      // where the synthetic click for some reason doesn't fire.
-      const nativeLink = $('#upi-native-link');
-      nativeLink.href = appUrl;
-      nativeLink.click();
-      setTimeout(() => { if(!handled) window.location.href = appUrl; }, 400);
-
-      toast('Opening ' + btn.textContent.trim() + '… (' + appUrl.split('?')[0] + ')');
-
-      // If GPay specifically doesn't open, fall back straight to the QR code —
-      // NOT to the generic upi:// link, since that can be claimed by any UPI-capable
-      // app on the phone (e.g. WhatsApp Pay), not necessarily GPay.
-      setTimeout(() => {
-        document.removeEventListener('visibilitychange', onHide);
-        if(!handled){
-          toast('⚠ GPay didn\'t open — scan the QR below with GPay\'s scanner instead');
-          setQrOpen(true);
-        }
-      }, 1500);
+      deleteEntryById(entry.id, cardWrap);
     });
-  });
-
-  // "Welcome back" — can't detect if payment succeeded (no app has that permission),
-  // but we can make logging it a single tap instead of hunting for the Save button.
-  document.addEventListener('visibilitychange', () => {
-    if(!document.hidden && paymentAttempted && $('#entry-sheet').classList.contains('show')){
-      paymentAttempted = false;
-      toast('👋 Back already? Review the details below and tap Save to log it');
-      $('#save-btn').scrollIntoView({ behavior: 'smooth', block: 'center' });
-      $('#save-btn').classList.add('save-btn-highlight');
-      setTimeout(() => $('#save-btn').classList.remove('save-btn-highlight'), 2400);
-    }
-  });
-
-
+  }
 
   // ---------------- CSV export ----------------
   function exportCsv(){
