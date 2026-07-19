@@ -659,6 +659,73 @@
   }
   @keyframes toast-in{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
   @keyframes toast-out{ from{opacity:1;} to{opacity:0; transform:translateY(-6px);} }
+  .toast.toast-action{
+    pointer-events:auto;
+    animation: toast-in .3s ease, toast-out .3s ease 4.6s forwards;
+  }
+  .toast-undo{
+    border:none;
+    background:var(--ink);
+    color:var(--marigold-hi);
+    font-family:'Manrope', sans-serif;
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:0.02em;
+    padding:5px 12px;
+    border-radius:100px;
+    cursor:pointer;
+    margin-left:2px;
+  }
+
+  .recurring-field{ margin-top:-4px; }
+  .recurring-check{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    font-size:13px;
+    font-weight:600;
+    color:var(--paper);
+    cursor:pointer;
+  }
+  .recurring-check input{ width:16px; height:16px; accent-color:var(--marigold); }
+
+  /* Edit history */
+  .edit-meta{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    font-size:11.5px;
+    color:var(--paper-faint);
+    margin:-6px 0 14px;
+  }
+  .history-toggle{
+    color:var(--marigold-hi);
+    font-weight:700;
+    cursor:pointer;
+    text-decoration:underline;
+    text-underline-offset:2px;
+    flex:0 0 auto;
+  }
+  .history-panel{
+    background:rgba(244,239,227,0.04);
+    border:1px solid var(--hairline);
+    border-radius:12px;
+    padding:4px 12px;
+    margin:-6px 0 14px;
+    max-height:220px;
+    overflow-y:auto;
+  }
+  .history-row{
+    padding:10px 0;
+    border-bottom:1px solid var(--hairline);
+    font-size:12px;
+  }
+  .history-row:last-child{ border-bottom:none; }
+  .history-when{ color:var(--paper-faint); font-size:11px; margin-bottom:3px; }
+  .history-change{ color:var(--paper); }
+  .history-change b{ color:var(--marigold-hi); font-weight:700; }
+  .history-empty{ color:var(--paper-faint); font-size:12px; padding:10px 0; }
 
   /* Settings menu */
   #menu-sheet{
@@ -689,6 +756,160 @@
   .menu-item svg{ color:var(--marigold); flex:0 0 auto; }
   .menu-item.danger{ color:var(--debit); }
   .menu-item.danger svg{ color:var(--debit); }
+  .menu-badge{
+    margin-left:auto;
+    background:var(--marigold);
+    color:#1B2A20;
+    font-size:11px;
+    font-weight:700;
+    padding:2px 8px;
+    border-radius:100px;
+  }
+
+  /* ---------- Recently deleted sheet ---------- */
+  #trash-sheet{
+    position:fixed;
+    left:50%; bottom:0;
+    transform:translate(-50%, 100%);
+    width:100%; max-width:460px;
+    background:var(--ink-2);
+    border-radius:24px 24px 0 0;
+    border:1px solid var(--hairline);
+    border-bottom:none;
+    padding:10px 22px 30px;
+    z-index:52;
+    transition: transform .32s cubic-bezier(.32,.72,0,1);
+    max-height:80vh;
+    overflow-y:auto;
+  }
+  #trash-sheet.show{ transform:translate(-50%, 0); }
+
+  /* ---------- Recurring entries sheet ---------- */
+  #recurring-sheet{
+    position:fixed;
+    left:50%; bottom:0;
+    transform:translate(-50%, 100%);
+    width:100%; max-width:460px;
+    background:var(--ink-2);
+    border-radius:24px 24px 0 0;
+    border:1px solid var(--hairline);
+    border-bottom:none;
+    padding:10px 22px 30px;
+    z-index:52;
+    transition: transform .32s cubic-bezier(.32,.72,0,1);
+    max-height:80vh;
+    overflow-y:auto;
+  }
+  #recurring-sheet.show{ transform:translate(-50%, 0); }
+  .recurring-item{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:12px 0;
+    border-bottom:1px solid var(--hairline);
+  }
+  .recurring-item:last-child{ border-bottom:none; }
+  .recurring-item.paused{ opacity:0.5; }
+  .recurring-item .trash-mid{ flex:1; min-width:0; }
+
+  /* ---------- PDF export sheet ---------- */
+  #pdf-sheet{
+    position:fixed;
+    left:50%; bottom:0;
+    transform:translate(-50%, 100%);
+    width:100%; max-width:460px;
+    background:var(--ink-2);
+    border-radius:24px 24px 0 0;
+    border:1px solid var(--hairline);
+    border-bottom:none;
+    padding:10px 22px 30px;
+    z-index:52;
+    transition: transform .32s cubic-bezier(.32,.72,0,1);
+  }
+  #pdf-sheet.show{ transform:translate(-50%, 0); }
+  .pdf-range-chips{ display:flex; gap:8px; margin:4px 0 18px; }
+  .pdf-range-chips .chip{ flex:1; text-align:center; }
+  .pdf-custom-range{ display:flex; gap:10px; margin-bottom:6px; }
+  .pdf-custom-range .field{ flex:1; }
+
+  /* ---------- Bulk select ---------- */
+  .entry-card-wrap.select-mode .entry-card{ padding-left:44px; }
+  .entry-check{
+    position:absolute;
+    left:14px; top:50%;
+    transform:translateY(-50%);
+    width:19px; height:19px;
+    accent-color:var(--marigold);
+    z-index:2;
+    display:none;
+  }
+  .entry-card-wrap.select-mode .entry-check{ display:block; }
+  .entry-card-wrap.select-mode .entry-card.checked{ background:rgba(232,163,61,0.1); }
+  #bulk-bar{
+    position:fixed;
+    left:50%; bottom:0;
+    transform:translate(-50%, 100%);
+    width:100%; max-width:460px;
+    background:var(--ink-2);
+    border-top:1px solid var(--hairline);
+    padding:14px 20px calc(14px + env(safe-area-inset-bottom, 0px));
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    z-index:55;
+    transition: transform .28s ease;
+  }
+  #bulk-bar.show{ transform:translate(-50%, 0); }
+  #bulk-count{ font-size:13px; font-weight:700; color:var(--paper); flex:0 0 auto; }
+  .bulk-actions{ display:flex; gap:8px; }
+  .bulk-btn{
+    font-family:'Manrope', sans-serif;
+    font-size:12px;
+    font-weight:700;
+    border:1px solid var(--hairline);
+    background:rgba(244,239,227,0.05);
+    color:var(--paper);
+    padding:8px 13px;
+    border-radius:100px;
+    cursor:pointer;
+  }
+  .bulk-btn.danger{ color:var(--debit); border-color:rgba(217,112,91,0.4); }
+  .bulk-btn:disabled{ opacity:0.4; cursor:not-allowed; }
+  .trash-note{
+    font-size:12px;
+    color:var(--paper-faint);
+    margin:0 0 14px;
+  }
+  .trash-item{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:12px 0;
+    border-bottom:1px solid var(--hairline);
+  }
+  .trash-item:last-child{ border-bottom:none; }
+  .trash-mid{ flex:1; min-width:0; }
+  .trash-desc{ font-size:13.5px; font-weight:600; color:var(--paper); }
+  .trash-sub{ font-size:11.5px; color:var(--paper-faint); margin-top:2px; }
+  .trash-amt{ font-family:'IBM Plex Mono', monospace; font-size:12.5px; font-weight:600; flex:0 0 auto; }
+  .trash-amt.Credit{ color:var(--credit); }
+  .trash-amt.Debit{ color:var(--debit); }
+  .trash-actions{ display:flex; gap:6px; flex:0 0 auto; }
+  .trash-btn{
+    font-family:'Manrope', sans-serif;
+    font-size:11.5px;
+    font-weight:700;
+    border:1px solid var(--hairline);
+    background:rgba(244,239,227,0.04);
+    color:var(--paper);
+    padding:6px 10px;
+    border-radius:100px;
+    cursor:pointer;
+  }
+  .trash-btn.restore{ color:var(--credit); border-color:rgba(79,174,138,0.4); }
+  .trash-btn.purge{ color:var(--debit); border-color:rgba(217,112,91,0.4); }
+  .trash-empty{ text-align:center; color:var(--paper-faint); font-size:13px; padding:30px 0; }
 
   /* ---------- Insights sheet ---------- */
   #insights-sheet{
@@ -930,6 +1151,26 @@
   }
 
   /* Success burst overlay */
+  /* Offline banner */
+  #offline-banner{
+    position:fixed;
+    top:0; left:0; right:0;
+    z-index:90;
+    background:var(--debit);
+    color:#2A1712;
+    font-size:12px;
+    font-weight:700;
+    text-align:center;
+    padding:9px 16px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
+    transform:translateY(-100%);
+    transition:transform .28s ease;
+  }
+  #offline-banner.show{ transform:translateY(0); }
+
   #success-burst{
     position:fixed; inset:0;
     display:flex; align-items:center; justify-content:center;
@@ -976,6 +1217,10 @@
 </style>
 </head>
 <body>
+<div id="offline-banner">
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l22 22M16.72 11.06A10.94 10.94 0 0119 12.55M5 12.55a10.94 10.94 0 015.17-2.39M10.71 5.05A16 16 0 0122.58 9M1.42 9a15.91 15.91 0 014.7-2.88M8.53 16.11a6 6 0 016.95 0M12 20h.01"/></svg>
+  <span>You're offline — entries will save and sync once you're back online</span>
+</div>
 <div id="success-burst"><div class="burst-ring"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div></div>
 <div id="auth-screen">
   <div class="auth-card">
@@ -1061,6 +1306,9 @@
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
       <input type="text" id="search-input" placeholder="Search entries…">
     </div>
+    <div class="icon-btn" id="select-btn" title="Select entries">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+    </div>
     <div class="icon-btn" id="export-btn" title="Export CSV">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
     </div>
@@ -1076,6 +1324,15 @@
 
   <div id="entries-list">
     <div class="loading-wrap"><div class="spin"></div>Loading your ledger…</div>
+  </div>
+
+  <div id="bulk-bar">
+    <span id="bulk-count">0 selected</span>
+    <div class="bulk-actions">
+      <button type="button" class="bulk-btn" id="bulk-export">Export CSV</button>
+      <button type="button" class="bulk-btn danger" id="bulk-delete">Delete</button>
+      <button type="button" class="bulk-btn" id="bulk-cancel">Cancel</button>
+    </div>
   </div>
 
   <button id="fab" title="Add entry">
@@ -1096,6 +1353,12 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
       </span>
     </div>
+
+    <div class="edit-meta" id="edit-meta" style="display:none;">
+      <span id="edit-meta-text"></span>
+      <span class="history-toggle" id="history-toggle">View history</span>
+    </div>
+    <div id="history-panel" class="history-panel" style="display:none;"></div>
 
     <div class="type-toggle">
       <div class="type-opt Credit" data-type="Credit">↓ Credit (In)</div>
@@ -1125,6 +1388,13 @@
       <input type="date" id="f-date">
     </div>
 
+    <div class="field recurring-field" id="recurring-field">
+      <label class="recurring-check">
+        <input type="checkbox" id="f-recurring">
+        <span>🔁 Repeat monthly on this day</span>
+      </label>
+    </div>
+
     <button class="save-btn" id="save-btn">Save Entry</button>
     <button class="delete-btn" id="delete-btn" style="display:none;">Delete Entry</button>
   </div>
@@ -1143,6 +1413,14 @@
     <div class="menu-item" id="menu-export">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
       Export all entries (CSV)
+    </div>
+    <div class="menu-item" id="menu-recurring">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 014-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>
+      Recurring entries<span class="menu-badge" id="recurring-count" style="display:none;"></span>
+    </div>
+    <div class="menu-item" id="menu-trash">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6"/><path d="M10 11v6M14 11v6"/></svg>
+      Recently deleted<span class="menu-badge" id="trash-count" style="display:none;"></span>
     </div>
     <div class="menu-item danger" id="menu-reset">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6"/></svg>
@@ -1185,6 +1463,56 @@
     </div>
   </div>
 
+  <div id="pdf-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">
+      <span>Export statement</span>
+      <span class="close-x" id="pdf-close">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </span>
+    </div>
+    <div class="pdf-range-chips">
+      <div class="chip active" data-range="all">All time</div>
+      <div class="chip" data-range="month">This month</div>
+      <div class="chip" data-range="custom">Custom range</div>
+    </div>
+    <div class="pdf-custom-range" id="pdf-custom-range" style="display:none;">
+      <div class="field">
+        <label>From</label>
+        <input type="date" id="pdf-from">
+      </div>
+      <div class="field">
+        <label>To</label>
+        <input type="date" id="pdf-to">
+      </div>
+    </div>
+    <button class="save-btn" id="pdf-generate">Generate PDF</button>
+  </div>
+
+  <div id="recurring-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">
+      <span>Recurring entries</span>
+      <span class="close-x" id="recurring-close">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </span>
+    </div>
+    <p class="trash-note">Auto-added each month once the day arrives. Set these up from the ＋ screen with "Repeat monthly" checked.</p>
+    <div id="recurring-list"></div>
+  </div>
+
+  <div id="trash-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">
+      <span>Recently deleted</span>
+      <span class="close-x" id="trash-close">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </span>
+    </div>
+    <p class="trash-note">Kept for 30 days, then removed automatically.</p>
+    <div id="trash-list"></div>
+  </div>
+
   <div id="toast-container"></div>
 
 </div>
@@ -1213,13 +1541,18 @@ const firebaseConfig = {
     createUserWithEmailAndPassword, signOut
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
   import {
-    getFirestore, collection, doc, addDoc, updateDoc, deleteDoc,
+    getFirestore, enableIndexedDbPersistence, collection, doc, addDoc, updateDoc, deleteDoc,
     getDocs, writeBatch, onSnapshot, query, getDoc, setDoc
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
   const firebaseApp = initializeApp(firebaseConfig);
   const auth = getAuth(firebaseApp);
   const db = getFirestore(firebaseApp);
+  // Lets writes made while offline queue in IndexedDB and sync automatically
+  // once the connection returns, instead of silently failing mid-entry.
+  enableIndexedDbPersistence(db).catch((err) => {
+    console.warn('Offline persistence unavailable:', err.code);
+  });
 
   let entries = [];
   let activeFilter = 'All';
@@ -1232,11 +1565,20 @@ const firebaseConfig = {
   let unsubscribeSnapshot = null;
   let isSignUpMode = false;
   let insightsCatType = 'Debit';
+  let recurringTemplates = [];
+  let selectMode = false;
+  let selectedIds = new Set();
 
   const CATEGORIES = [
+    // Business (events & decor)
     'Flowers', 'Materials & Textiles', 'Transport & Petrol', 'Labour & Wages',
-    'Food', 'Rent', 'Utilities & Recharge', 'Tools & Equipment', 'Courier',
-    'Bank & ATM', 'Client Payment', 'Other'
+    'Rent', 'Utilities & Recharge', 'Tools & Equipment', 'Courier',
+    'Bank & ATM', 'Client Payment',
+    // Home & personal
+    'Food', 'Groceries', 'Movies & Entertainment', 'Medical & Health',
+    'Education', 'Electricity Bill', 'Mobile & Internet', 'EMI & Loan',
+    'Shopping', 'Travel', 'Household & Repairs', 'Insurance', 'Gifts & Donations',
+    'Other'
   ];
   const CATEGORY_PALETTE = ['#E8A33D','#4FAE8A','#D9705B','#C97A2B','#6FA8DC','#B98CD9','#5FC9C0','#E0C46F','#D98CB3','#8FBF6A','#C97AA8','#7A9ED9','#F4BE5F','#5EA6A0'];
 
@@ -1248,7 +1590,7 @@ const firebaseConfig = {
   }
 
   function getAllCategories(){
-    const used = new Set(entries.map(e => (e.category || '').trim()).filter(Boolean));
+    const used = new Set(activeEntries().map(e => (e.category || '').trim()).filter(Boolean));
     const merged = CATEGORIES.slice();
     used.forEach(c => { if(!merged.includes(c)) merged.push(c); });
     return merged;
@@ -1260,13 +1602,30 @@ const firebaseConfig = {
   const fmtMoney = (n) => '₹' + Math.round(n).toLocaleString('en-IN');
   const fmtMoneyPlain = (n) => Math.round(n).toLocaleString('en-IN');
 
-  function toast(msg, icon){
+  // ---------------- Connection status ----------------
+  function updateConnectionBanner(){
+    $('#offline-banner').classList.toggle('show', !navigator.onLine);
+  }
+  window.addEventListener('online', () => { updateConnectionBanner(); toast('✓ Back online — syncing'); });
+  window.addEventListener('offline', () => { updateConnectionBanner(); toast('⚠ Offline — entries will queue until reconnected'); });
+  updateConnectionBanner();
+
+  function toast(msg, icon, action){
     const c = $('#toast-container');
     const t = document.createElement('div');
-    t.className = 'toast';
+    t.className = 'toast' + (action ? ' toast-action' : '');
     t.innerHTML = (icon || '') + '<span>' + msg + '</span>';
+    if(action){
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'toast-undo';
+      btn.textContent = action.label;
+      btn.onclick = () => { action.onClick(); t.remove(); };
+      t.appendChild(btn);
+    }
     c.appendChild(t);
-    setTimeout(() => t.remove(), 2600);
+    const life = action ? 5000 : 2600;
+    setTimeout(() => t.remove(), life);
   }
 
   // ---------------- Auth ----------------
@@ -1347,6 +1706,13 @@ const firebaseConfig = {
   // ---------------- Firestore sync ----------------
   function entriesCol(uid){ return collection(db, 'users', uid, 'entries'); }
   function userDocRef(uid){ return doc(db, 'users', uid); }
+  // Every edit's *previous* values are archived here before being overwritten,
+  // so a changed entry can always be traced back to what it used to say.
+  function historyCol(uid, entryId){ return collection(db, 'users', uid, 'entries', entryId, 'history'); }
+  // Recurring templates: lightweight rules ("₹X, monthly, on day D") that
+  // auto-generate a real entry once each month, instead of the user retyping
+  // rent/salaries every time.
+  function recurringCol(uid){ return collection(db, 'users', uid, 'recurring'); }
 
   async function seedIfEmpty(uid){
     // A user is only ever seeded once, tracked by a marker on their user doc —
@@ -1380,19 +1746,96 @@ const firebaseConfig = {
     }catch(e){
       console.error('Seed failed', e);
     }
+    try{
+      const snap = await getDocs(recurringCol(uid));
+      recurringTemplates = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      await processRecurring(uid);
+      updateRecurringBadge();
+    }catch(e){
+      console.error('Recurring load/process failed', e);
+    }
     if(unsubscribeSnapshot) unsubscribeSnapshot();
     unsubscribeSnapshot = onSnapshot(query(entriesCol(uid)), (snap) => {
       entries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       renderAll();
+      updateTrashBadge();
+      purgeOldTrash(uid);
     }, (err) => {
       console.error('Sync error', err);
       toast('⚠ Sync error — check your connection');
     });
   }
 
+  // Trash entries are only ever soft-deleted, so something has to eventually
+  // reclaim storage. 30 days after deletion they're permanently removed —
+  // client-side is good enough here since this app has no backend of its own.
+  const TRASH_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
+  let purgeInFlight = false;
+  async function purgeOldTrash(uid){
+    if(purgeInFlight) return;
+    const cutoff = Date.now() - TRASH_RETENTION_MS;
+    const stale = entries.filter(e => e.deleted && e.deletedAt && e.deletedAt < cutoff);
+    if(!stale.length) return;
+    purgeInFlight = true;
+    try{
+      const batch = writeBatch(db);
+      stale.forEach(e => batch.delete(doc(entriesCol(uid), e.id)));
+      await batch.commit();
+    }catch(e){
+      console.error('Auto-purge failed', e);
+    }finally{
+      purgeInFlight = false;
+    }
+  }
+
+  function daysInMonth(year, monthIndex){ return new Date(year, monthIndex + 1, 0).getDate(); }
+
+  // On each app open, checks every active recurring template and — once the
+  // template's day-of-month has arrived — creates this month's entry if it
+  // hasn't already been created, so rent/salaries never need retyping.
+  async function processRecurring(uid){
+    const active = recurringTemplates.filter(t => t.active);
+    if(!active.length) return;
+    const now = new Date();
+    const y = now.getFullYear(), m = now.getMonth();
+    const thisMonthKey = `${y}-${String(m + 1).padStart(2,'0')}`;
+    let currentEntries;
+    try{
+      const snap = await getDocs(entriesCol(uid));
+      currentEntries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    }catch(e){ console.error(e); return; }
+
+    const batch = writeBatch(db);
+    let created = 0;
+    active.forEach(t => {
+      const day = Math.min(t.dayOfMonth || 1, daysInMonth(y, m));
+      if(now.getDate() < day) return; // that day hasn't arrived yet this month
+      const already = currentEntries.some(e => e.templateId === t.id && !e.deleted && e.date && e.date.slice(0,7) === thisMonthKey);
+      if(already) return;
+      const dateStr = `${y}-${String(m + 1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      const ref = doc(entriesCol(uid));
+      batch.set(ref, {
+        desc: t.desc, amount: t.amount, type: t.type, category: t.category || '',
+        date: dateStr, order: Date.now(), templateId: t.id
+      });
+      created++;
+    });
+    if(created){
+      try{ await batch.commit(); toast(`🔁 ${created} recurring ${created === 1 ? 'entry' : 'entries'} added this month`); }
+      catch(e){ console.error('Recurring commit failed', e); }
+    }
+  }
+
   // ---------------- Derived data ----------------
+  // Soft-deleted entries stay in Firestore (recoverable) but must never show up
+  // in the ledger, totals, categories, months, search, or exports.
+  function activeEntries(){ return entries.filter(e => !e.deleted); }
+  function trashedEntries(){
+    return entries.filter(e => e.deleted).sort((a,b) => (b.deletedAt || 0) - (a.deletedAt || 0));
+  }
+
   function sortedEntries(){
-    return entries.slice().sort((a,b) => {
+    return activeEntries().slice().sort((a,b) => {
       if(a.date !== b.date) return a.date < b.date ? -1 : 1;
       return (a.order ?? 0) - (b.order ?? 0);
     });
@@ -1405,7 +1848,7 @@ const firebaseConfig = {
     return d.toLocaleDateString('en-IN', { month:'short', year:'numeric' });
   }
   function getMonths(){
-    const set = new Set(entries.map(e => monthKey(e.date)).filter(Boolean));
+    const set = new Set(activeEntries().map(e => monthKey(e.date)).filter(Boolean));
     return Array.from(set).sort();
   }
   function dateLabel(dateStr){
@@ -1534,16 +1977,17 @@ const firebaseConfig = {
 
       dayEntries.slice().reverse().forEach((e, i) => {
         const cardWrap = document.createElement('div');
-        cardWrap.className = 'entry-card-wrap';
+        cardWrap.className = 'entry-card-wrap' + (selectMode ? ' select-mode' : '');
         cardWrap.innerHTML = `
           <div class="entry-delete-bg">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6"/></svg>
             Delete
           </div>`;
         const card = document.createElement('div');
-        card.className = 'entry-card';
+        card.className = 'entry-card' + (selectedIds.has(e.id) ? ' checked' : '');
         card.style.animationDelay = (i * 0.03) + 's';
         card.innerHTML = `
+          <input type="checkbox" class="entry-check" ${selectedIds.has(e.id) ? 'checked' : ''}>
           <div class="type-bar ${e.type}"></div>
           <div class="entry-icon ${e.type}">${e.type === 'Credit' ? CREDIT_ICON : DEBIT_ICON}</div>
           <div class="entry-mid">
@@ -1552,9 +1996,14 @@ const firebaseConfig = {
           </div>
           <div class="entry-amt ${e.type}">${e.type === 'Credit' ? '+' : '−'}${fmtMoney(e.amount)}</div>
         `;
-        card.onclick = () => { if(!cardWrap.dataset.swiped) openSheet(e); };
+        if(selectMode){
+          card.onclick = () => toggleSelect(e.id, card);
+          card.querySelector('.entry-check').onclick = (ev) => { ev.stopPropagation(); toggleSelect(e.id, card); };
+        } else {
+          card.onclick = () => { if(!cardWrap.dataset.swiped) openSheet(e); };
+        }
         cardWrap.appendChild(card);
-        wireSwipeToDelete(cardWrap, card, e);
+        if(!selectMode) wireSwipeToDelete(cardWrap, card, e);
         group.appendChild(cardWrap);
         requestAnimationFrame(() => card.classList.add('revealed'));
       });
@@ -1569,9 +2018,85 @@ const firebaseConfig = {
     return d.innerHTML;
   }
 
+  // ---------------- Bulk select ----------------
+  function updateBulkBar(){
+    const n = selectedIds.size;
+    $('#bulk-count').textContent = n + ' selected';
+    $('#bulk-bar').classList.toggle('show', selectMode);
+    $('#bulk-export').disabled = n === 0;
+    $('#bulk-delete').disabled = n === 0;
+  }
+
+  function toggleSelect(id, cardEl){
+    if(selectedIds.has(id)){ selectedIds.delete(id); }
+    else { selectedIds.add(id); }
+    if(cardEl){
+      cardEl.classList.toggle('checked', selectedIds.has(id));
+      const box = cardEl.querySelector('.entry-check');
+      if(box) box.checked = selectedIds.has(id);
+    }
+    updateBulkBar();
+  }
+
+  function enterSelectMode(){
+    selectMode = true;
+    selectedIds.clear();
+    $('#fab').style.display = 'none';
+    renderList();
+    updateBulkBar();
+  }
+
+  function exitSelectMode(){
+    selectMode = false;
+    selectedIds.clear();
+    $('#fab').style.display = 'flex';
+    renderList();
+    updateBulkBar();
+  }
+
+  $('#select-btn').addEventListener('click', () => {
+    if(selectMode) exitSelectMode(); else enterSelectMode();
+  });
+  $('#bulk-cancel').addEventListener('click', exitSelectMode);
+
+  $('#bulk-delete').addEventListener('click', async () => {
+    if(!selectedIds.size || !currentUser) return;
+    const ids = Array.from(selectedIds);
+    if(!confirm(`Delete ${ids.length} selected ${ids.length === 1 ? 'entry' : 'entries'}? They'll be recoverable from Recently Deleted.`)) return;
+    try{
+      await Promise.all(ids.map(id => softDelete(id)));
+      toast(`🗑 ${ids.length} ${ids.length === 1 ? 'entry' : 'entries'} deleted`);
+      exitSelectMode();
+    }catch(e){
+      console.error(e);
+      toast('⚠ Could not delete — check connection');
+    }
+  });
+
+  $('#bulk-export').addEventListener('click', () => {
+    if(!selectedIds.size) return;
+    const list = sortedEntries().filter(e => selectedIds.has(e.id));
+    const rows = [['Date','Description','Category','Type','Amount']];
+    list.forEach(e => rows.push([e.date, e.desc, e.category || '', e.type, e.amount]));
+    const csv = rows.map(r => r.map(v => {
+      const s = String(v).replace(/"/g,'""');
+      return /[",\n]/.test(s) ? `"${s}"` : s;
+    }).join(',')).join('\n');
+    const blob = new Blob([csv], { type:'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'thillai-decors-selected-' + new Date().toISOString().slice(0,10) + '.csv';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    toast('📄 CSV downloaded');
+  });
+
   function renderCategoryFilterChips(){
     const wrap = $('#category-filter-chips');
-    const cats = Array.from(new Set(entries.map(e => (e.category || '').trim()).filter(Boolean))).sort();
+    const cats = Array.from(new Set(activeEntries().map(e => (e.category || '').trim()).filter(Boolean))).sort();
     if(!cats.length){
       wrap.classList.add('hide');
       wrap.innerHTML = '';
@@ -1647,6 +2172,21 @@ const firebaseConfig = {
     $('#delete-btn').style.display = entry ? 'block' : 'none';
     renderCategoryChips();
 
+    $('#recurring-field').style.display = entry ? 'none' : 'block';
+    $('#f-recurring').checked = false;
+
+    $('#history-panel').style.display = 'none';
+    $('#history-panel').innerHTML = '';
+    $('#history-toggle').textContent = 'View history';
+    if(entry){
+      $('#edit-meta').style.display = 'flex';
+      $('#edit-meta-text').textContent = entry.updatedAt
+        ? `Edited by ${entry.updatedBy || 'unknown'} · ${new Date(entry.updatedAt).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' })}`
+        : 'No edits yet';
+    } else {
+      $('#edit-meta').style.display = 'none';
+    }
+
     updateTypeToggle();
 
     $('#sheet-backdrop').classList.add('show');
@@ -1659,6 +2199,9 @@ const firebaseConfig = {
     $('#entry-sheet').classList.remove('show');
     $('#menu-sheet').classList.remove('show');
     $('#insights-sheet').classList.remove('show');
+    $('#trash-sheet').classList.remove('show');
+    $('#recurring-sheet').classList.remove('show');
+    $('#pdf-sheet').classList.remove('show');
     editingId = null;
   }
 
@@ -1689,10 +2232,42 @@ const firebaseConfig = {
     $('#save-btn').disabled = true;
     try{
       if(editingId){
-        await updateDoc(doc(entriesCol(currentUser.uid), editingId), { desc, amount, date, type: activeType, category });
+        const prev = entries.find(e => e.id === editingId);
+        const changed = prev && (prev.desc !== desc || prev.amount !== amount || prev.date !== date || prev.type !== activeType || (prev.category || '') !== category);
+        if(prev && changed){
+          try{
+            await addDoc(historyCol(currentUser.uid, editingId), {
+              desc: prev.desc, amount: prev.amount, date: prev.date, type: prev.type, category: prev.category || '',
+              editedAt: Date.now(), editedBy: currentUser.email || null
+            });
+          }catch(histErr){
+            // Don't block the save if the audit write fails — losing history
+            // is far better than losing the user's edit.
+            console.error('Could not record edit history', histErr);
+          }
+        }
+        await updateDoc(doc(entriesCol(currentUser.uid), editingId), {
+          desc, amount, date, type: activeType, category,
+          updatedAt: Date.now(), updatedBy: currentUser.email || null
+        });
         toast('✓ Entry updated');
       } else {
-        await addDoc(entriesCol(currentUser.uid), { desc, amount, date, type: activeType, category, order: entries.length });
+        const ref = await addDoc(entriesCol(currentUser.uid), { desc, amount, date, type: activeType, category, order: entries.length });
+        if($('#f-recurring').checked){
+          try{
+            const day = parseInt(date.slice(8,10), 10);
+            const tRef = await addDoc(recurringCol(currentUser.uid), {
+              desc, amount, type: activeType, category, dayOfMonth: day, active: true, createdAt: Date.now()
+            });
+            await updateDoc(ref, { templateId: tRef.id });
+            recurringTemplates.push({ id: tRef.id, desc, amount, type: activeType, category, dayOfMonth: day, active: true, createdAt: Date.now() });
+          }catch(recErr){
+            // The entry itself already saved — a failed recurring setup
+            // shouldn't look like a failed save to the user.
+            console.error('Could not set up recurring template', recErr);
+            toast('Entry saved, but recurring setup failed');
+          }
+        }
         toast('✓ Entry saved');
       }
       closeSheet();
@@ -1704,13 +2279,36 @@ const firebaseConfig = {
     }
   }
 
+  // Deletes are soft: the doc is flagged `deleted` rather than removed, so it
+  // can be brought back from the Undo toast or the Recently Deleted sheet.
+  // Firestore compaction (permanent removal) only happens after 30 days,
+  // via purgeOldTrash() below.
+  async function softDelete(id){
+    await updateDoc(doc(entriesCol(currentUser.uid), id), {
+      deleted: true,
+      deletedAt: Date.now(),
+      deletedBy: currentUser.email || null
+    });
+  }
+
+  async function restoreEntry(id){
+    if(!currentUser) return;
+    try{
+      await updateDoc(doc(entriesCol(currentUser.uid), id), { deleted: false, deletedAt: null, deletedBy: null });
+      toast('↩ Entry restored');
+    }catch(e){
+      console.error(e);
+      toast('⚠ Could not restore — check connection');
+    }
+  }
+
   async function deleteEntry(){
     if(!editingId || !currentUser) return;
-    if(!confirm('Delete this entry? This cannot be undone.')) return;
+    const id = editingId;
     try{
-      await deleteDoc(doc(entriesCol(currentUser.uid), editingId));
+      await softDelete(id);
       closeSheet();
-      toast('🗑 Entry deleted');
+      toast('🗑 Entry deleted', '', { label: 'UNDO', onClick: () => restoreEntry(id) });
     }catch(e){
       console.error(e);
       toast('⚠ Could not delete — check connection');
@@ -1720,8 +2318,8 @@ const firebaseConfig = {
   async function deleteEntryById(id, cardWrap){
     if(!currentUser) return;
     try{
-      await deleteDoc(doc(entriesCol(currentUser.uid), id));
-      toast('🗑 Entry deleted');
+      await softDelete(id);
+      toast('🗑 Entry deleted', '', { label: 'UNDO', onClick: () => restoreEntry(id) });
     }catch(e){
       console.error(e);
       toast('⚠ Could not delete — check connection');
@@ -1779,11 +2377,6 @@ const firebaseConfig = {
 
     cardWrap.querySelector('.entry-delete-bg').addEventListener('click', (ev) => {
       ev.stopPropagation();
-      if(!confirm('Delete this entry? This cannot be undone.')) {
-        card.style.transform = 'translateX(0)';
-        delete cardWrap.dataset.swiped;
-        return;
-      }
       deleteEntryById(entry.id, cardWrap);
     });
   }
@@ -1809,9 +2402,11 @@ const firebaseConfig = {
   }
 
   // ---------------- PDF export ----------------
-  function exportPdf(){
-    const list = sortedEntries();
-    if(!list.length){ toast('No entries to export'); return; }
+  function exportPdf(fromDate, toDate){
+    let list = sortedEntries();
+    if(fromDate) list = list.filter(e => e.date >= fromDate);
+    if(toDate) list = list.filter(e => e.date <= toDate);
+    if(!list.length){ toast('No entries in that range'); return; }
     let credit = 0, debit = 0;
     list.forEach(e => { if(e.type === 'Credit') credit += e.amount; else debit += e.amount; });
     const net = credit - debit;
@@ -1823,40 +2418,59 @@ const firebaseConfig = {
         <td class="type-${e.type.toLowerCase()}">${escapeHtml(e.type)}</td>
         <td class="amt">${e.type === 'Credit' ? '+' : '-'}₹${fmtMoneyPlain(e.amount)}</td>
       </tr>`).join('');
+    const periodLabel = (fromDate || toDate)
+      ? `${fromDate ? dateLabel(fromDate) : 'Start'} – ${toDate ? dateLabel(toDate) : 'Today'}`
+      : 'All time';
     const html = `<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
-<title>Thillai Decors & Events — Cash Ledger</title>
+<title>Thillai Decors & Events — Cash Ledger Statement</title>
 <style>
-  body{ font-family: Arial, Helvetica, sans-serif; color:#111; padding:24px; }
-  h1{ font-size:18px; margin:0 0 2px; }
-  .sub{ color:#666; font-size:12px; margin-bottom:18px; }
-  .summary{ display:flex; gap:24px; margin-bottom:20px; }
-  .summary div{ border:1px solid #ddd; border-radius:8px; padding:10px 16px; }
-  .summary .label{ font-size:11px; color:#666; text-transform:uppercase; }
+  body{ font-family: Arial, Helvetica, sans-serif; color:#111; padding:0; margin:0; }
+  .letterhead{ background:#1B2A20; color:#F4EFE3; padding:26px 28px 20px; }
+  .letterhead .brand{ font-size:20px; font-weight:bold; letter-spacing:0.01em; }
+  .letterhead .brand em{ font-style:italic; color:#E8A33D; }
+  .letterhead .tag{ font-size:11px; color:#cfc9ba; margin-top:2px; }
+  .body-pad{ padding:22px 28px 28px; }
+  h1{ font-size:15px; margin:0 0 2px; }
+  .sub{ color:#666; font-size:11.5px; margin-bottom:18px; }
+  .summary{ display:flex; gap:20px; margin-bottom:20px; }
+  .summary div{ border:1px solid #ddd; border-radius:8px; padding:10px 16px; flex:1; }
+  .summary .label{ font-size:10.5px; color:#666; text-transform:uppercase; letter-spacing:0.04em; }
   .summary .val{ font-size:16px; font-weight:bold; }
-  table{ width:100%; border-collapse:collapse; font-size:12px; }
-  th, td{ text-align:left; padding:6px 8px; border-bottom:1px solid #eee; }
-  th{ background:#f5f5f5; }
+  table{ width:100%; border-collapse:collapse; font-size:11.5px; }
+  th, td{ text-align:left; padding:7px 8px; border-bottom:1px solid #eee; }
+  th{ background:#f5f5f5; font-size:10.5px; text-transform:uppercase; letter-spacing:0.03em; }
   td.amt{ text-align:right; font-weight:bold; }
   td.type-credit{ color:#1a7a3c; }
   td.type-debit{ color:#b3261e; }
-  @media print{ body{ padding:8px; } }
+  .footer{ margin-top:24px; padding-top:14px; border-top:1px solid #ddd; font-size:10.5px; color:#888; display:flex; justify-content:space-between; }
+  @media print{ .letterhead{ background:#1B2A20 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; } body{ padding:8px; } }
 </style>
 </head>
 <body>
-  <h1>Thillai Decors & Events — Cash Ledger</h1>
-  <div class="sub">Statement generated ${escapeHtml(new Date().toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }))} · ${list.length} entries</div>
-  <div class="summary">
-    <div><div class="label">Total Credit</div><div class="val" style="color:#1a7a3c;">₹${fmtMoneyPlain(credit)}</div></div>
-    <div><div class="label">Total Debit</div><div class="val" style="color:#b3261e;">₹${fmtMoneyPlain(debit)}</div></div>
-    <div><div class="label">Net Balance</div><div class="val">₹${fmtMoneyPlain(net)}</div></div>
+  <div class="letterhead">
+    <div class="brand">Thillai <em>Decors</em> &amp; Events</div>
+    <div class="tag">Cash Ledger Statement</div>
   </div>
-  <table>
-    <thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Type</th><th style="text-align:right;">Amount</th></tr></thead>
-    <tbody>${rowsHtml}</tbody>
-  </table>
+  <div class="body-pad">
+    <h1>Statement — ${escapeHtml(periodLabel)}</h1>
+    <div class="sub">Generated ${escapeHtml(new Date().toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }))} · ${list.length} entries · Prepared by ${escapeHtml((currentUser && currentUser.email) || 'ledger user')}</div>
+    <div class="summary">
+      <div><div class="label">Total Credit</div><div class="val" style="color:#1a7a3c;">₹${fmtMoneyPlain(credit)}</div></div>
+      <div><div class="label">Total Debit</div><div class="val" style="color:#b3261e;">₹${fmtMoneyPlain(debit)}</div></div>
+      <div><div class="label">Net Balance</div><div class="val">₹${fmtMoneyPlain(net)}</div></div>
+    </div>
+    <table>
+      <thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Type</th><th style="text-align:right;">Amount</th></tr></thead>
+      <tbody>${rowsHtml}</tbody>
+    </table>
+    <div class="footer">
+      <span>Thillai Decors &amp; Events — Cash Ledger</span>
+      <span>System-generated statement</span>
+    </div>
+  </div>
 </body>
 </html>`;
     const w = window.open('', '_blank');
@@ -1867,6 +2481,41 @@ const firebaseConfig = {
     w.onload = () => { w.focus(); w.print(); };
     toast('📄 Opening print preview…');
   }
+
+  // ---------------- PDF export range picker ----------------
+  let pdfRangeMode = 'all';
+  function openPdfSheet(){
+    pdfRangeMode = 'all';
+    $$('.pdf-range-chips .chip').forEach(c => c.classList.toggle('active', c.dataset.range === 'all'));
+    $('#pdf-custom-range').style.display = 'none';
+    const today = new Date().toISOString().slice(0,10);
+    $('#pdf-from').value = today;
+    $('#pdf-to').value = today;
+    $('#sheet-backdrop').classList.add('show');
+    $('#pdf-sheet').classList.add('show');
+  }
+  $$('.pdf-range-chips .chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      pdfRangeMode = chip.dataset.range;
+      $$('.pdf-range-chips .chip').forEach(c => c.classList.toggle('active', c === chip));
+      $('#pdf-custom-range').style.display = pdfRangeMode === 'custom' ? 'flex' : 'none';
+    });
+  });
+  $('#pdf-close').addEventListener('click', closeSheet);
+  $('#pdf-generate').addEventListener('click', () => {
+    let from = null, to = null;
+    if(pdfRangeMode === 'month'){
+      const now = new Date();
+      from = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
+      to = new Date().toISOString().slice(0,10);
+    } else if(pdfRangeMode === 'custom'){
+      from = $('#pdf-from').value || null;
+      to = $('#pdf-to').value || null;
+      if(from && to && from > to){ toast('⚠ "From" date is after "To" date'); return; }
+    }
+    closeSheet();
+    exportPdf(from, to);
+  });
 
   // ---------------- Insights: charts ----------------
   function buildDonutSvg(segments, size, strokeWidth){
@@ -1957,6 +2606,130 @@ const firebaseConfig = {
       </div>`).join('');
   }
 
+  // ---------------- Recently deleted ----------------
+  function daysLeft(deletedAt){
+    const ms = TRASH_RETENTION_MS - (Date.now() - (deletedAt || 0));
+    return Math.max(0, Math.ceil(ms / (24 * 60 * 60 * 1000)));
+  }
+
+  function updateTrashBadge(){
+    const n = trashedEntries().length;
+    const badge = $('#trash-count');
+    if(n){ badge.textContent = n; badge.style.display = 'inline-block'; }
+    else { badge.style.display = 'none'; }
+  }
+
+  function renderTrash(){
+    const list = trashedEntries();
+    const wrap = $('#trash-list');
+    if(!list.length){
+      wrap.innerHTML = '<p class="trash-empty">Nothing in the trash.</p>';
+      return;
+    }
+    wrap.innerHTML = '';
+    list.forEach(e => {
+      const row = document.createElement('div');
+      row.className = 'trash-item';
+      row.innerHTML = `
+        <div class="trash-mid">
+          <div class="trash-desc">${escapeHtml(e.desc)}</div>
+          <div class="trash-sub">${escapeHtml(dateLabel(e.date))} · deleted by ${escapeHtml(e.deletedBy || 'unknown')} · ${daysLeft(e.deletedAt)}d left</div>
+        </div>
+        <div class="trash-amt ${e.type}">${e.type === 'Credit' ? '+' : '−'}${fmtMoney(e.amount)}</div>
+        <div class="trash-actions">
+          <button type="button" class="trash-btn restore">Restore</button>
+          <button type="button" class="trash-btn purge">Delete forever</button>
+        </div>`;
+      row.querySelector('.restore').addEventListener('click', () => restoreEntry(e.id));
+      row.querySelector('.purge').addEventListener('click', async () => {
+        if(!confirm('Permanently delete this entry? This cannot be undone.')) return;
+        try{
+          await deleteDoc(doc(entriesCol(currentUser.uid), e.id));
+          toast('Permanently deleted');
+        }catch(err){
+          console.error(err);
+          toast('⚠ Could not delete — check connection');
+        }
+      });
+      wrap.appendChild(row);
+    });
+  }
+
+  function openTrash(){
+    renderTrash();
+    $('#sheet-backdrop').classList.add('show');
+    $('#trash-sheet').classList.add('show');
+  }
+
+  $('#menu-trash').addEventListener('click', () => { $('#menu-sheet').classList.remove('show'); openTrash(); });
+  $('#trash-close').addEventListener('click', closeSheet);
+
+  // ---------------- Recurring entries management ----------------
+  function updateRecurringBadge(){
+    const n = recurringTemplates.filter(t => t.active).length;
+    const badge = $('#recurring-count');
+    if(n){ badge.textContent = n; badge.style.display = 'inline-block'; }
+    else { badge.style.display = 'none'; }
+  }
+
+  function renderRecurring(){
+    const wrap = $('#recurring-list');
+    if(!recurringTemplates.length){
+      wrap.innerHTML = '<p class="trash-empty">No recurring entries set up yet.</p>';
+      return;
+    }
+    wrap.innerHTML = '';
+    recurringTemplates.slice().sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0)).forEach(t => {
+      const row = document.createElement('div');
+      row.className = 'recurring-item' + (t.active ? '' : ' paused');
+      row.innerHTML = `
+        <div class="trash-mid">
+          <div class="trash-desc">${escapeHtml(t.desc)}</div>
+          <div class="trash-sub">Day ${t.dayOfMonth} of every month${t.category ? ' · ' + escapeHtml(t.category) : ''} · ${t.active ? 'Active' : 'Paused'}</div>
+        </div>
+        <div class="trash-amt ${t.type}">${t.type === 'Credit' ? '+' : '−'}${fmtMoney(t.amount)}</div>
+        <div class="trash-actions">
+          <button type="button" class="trash-btn restore toggle-btn">${t.active ? 'Pause' : 'Resume'}</button>
+          <button type="button" class="trash-btn purge">Remove</button>
+        </div>`;
+      row.querySelector('.toggle-btn').addEventListener('click', async () => {
+        try{
+          await updateDoc(doc(recurringCol(currentUser.uid), t.id), { active: !t.active });
+          t.active = !t.active;
+          renderRecurring();
+          updateRecurringBadge();
+          toast(t.active ? '▶ Resumed' : '⏸ Paused');
+        }catch(e){
+          console.error(e);
+          toast('⚠ Could not update — check connection');
+        }
+      });
+      row.querySelector('.purge').addEventListener('click', async () => {
+        if(!confirm('Remove this recurring entry? Past entries it already created are unaffected.')) return;
+        try{
+          await deleteDoc(doc(recurringCol(currentUser.uid), t.id));
+          recurringTemplates = recurringTemplates.filter(x => x.id !== t.id);
+          renderRecurring();
+          updateRecurringBadge();
+          toast('Removed');
+        }catch(e){
+          console.error(e);
+          toast('⚠ Could not remove — check connection');
+        }
+      });
+      wrap.appendChild(row);
+    });
+  }
+
+  function openRecurring(){
+    renderRecurring();
+    $('#sheet-backdrop').classList.add('show');
+    $('#recurring-sheet').classList.add('show');
+  }
+
+  $('#menu-recurring').addEventListener('click', () => { $('#menu-sheet').classList.remove('show'); openRecurring(); });
+  $('#recurring-close').addEventListener('click', closeSheet);
+
   function openInsights(){
     renderCategoryChart();
     renderTrendChart();
@@ -1985,19 +2758,51 @@ const firebaseConfig = {
   $('#sheet-backdrop').addEventListener('click', closeSheet);
   $('#save-btn').addEventListener('click', saveEntry);
   $('#delete-btn').addEventListener('click', deleteEntry);
+  $('#history-toggle').addEventListener('click', async () => {
+    const panel = $('#history-panel');
+    if(panel.style.display === 'block'){
+      panel.style.display = 'none';
+      $('#history-toggle').textContent = 'View history';
+      return;
+    }
+    if(!editingId || !currentUser) return;
+    panel.style.display = 'block';
+    panel.innerHTML = '<p class="history-empty">Loading…</p>';
+    $('#history-toggle').textContent = 'Hide history';
+    try{
+      const snap = await getDocs(historyCol(currentUser.uid, editingId));
+      const rows = snap.docs.map(d => d.data()).sort((a,b) => (b.editedAt || 0) - (a.editedAt || 0));
+      if(!rows.length){
+        panel.innerHTML = '<p class="history-empty">No earlier versions recorded.</p>';
+        return;
+      }
+      panel.innerHTML = rows.map(r => `
+        <div class="history-row">
+          <div class="history-when">${escapeHtml(r.editedBy || 'unknown')} · ${new Date(r.editedAt).toLocaleString('en-IN', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' })}</div>
+          <div class="history-change">Previously: <b>${escapeHtml(r.desc)}</b> · ${r.type === 'Credit' ? '+' : '−'}${fmtMoney(r.amount)} · ${escapeHtml(dateLabel(r.date))}${r.category ? ' · ' + escapeHtml(r.category) : ''}</div>
+        </div>`).join('');
+    }catch(e){
+      console.error(e);
+      panel.innerHTML = '<p class="history-empty">Could not load history.</p>';
+    }
+  });
   $('#export-btn').addEventListener('click', exportCsv);
   $('#menu-export').addEventListener('click', () => { exportCsv(); closeSheet(); });
-  $('#menu-pdf').addEventListener('click', () => { exportPdf(); closeSheet(); });
+  $('#menu-pdf').addEventListener('click', () => { $('#menu-sheet').classList.remove('show'); openPdfSheet(); });
   $('#menu-reset').addEventListener('click', async () => {
     if(!currentUser) return;
-    if(!confirm('Clear ALL saved entries? This cannot be undone.')) return;
+    const count = activeEntries().length;
+    if(!count){ toast('Nothing to clear'); return; }
+    if(!confirm(`Move all ${count} entries to Recently Deleted? You'll be able to restore them there for 30 days.`)) return;
     try{
-      const snap = await getDocs(entriesCol(currentUser.uid));
+      const ts = Date.now();
       const batch = writeBatch(db);
-      snap.docs.forEach(d => batch.delete(d.ref));
+      activeEntries().forEach(e => {
+        batch.update(doc(entriesCol(currentUser.uid), e.id), { deleted: true, deletedAt: ts, deletedBy: currentUser.email || null });
+      });
       await batch.commit();
       closeSheet();
-      toast('Ledger cleared');
+      toast(`🗑 ${count} entries moved to trash`);
     }catch(e){
       console.error(e);
       toast('⚠ Could not clear — check connection');
