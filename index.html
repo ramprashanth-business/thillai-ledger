@@ -578,6 +578,7 @@
   }
   .confirm-cancel{ background:rgba(244,239,227,0.03); color:var(--paper); }
   .confirm-ok{ background:var(--debit); border-color:var(--debit); color:#2a120c; box-shadow: 0 1px 0 rgba(255,255,255,0.3) inset, 0 4px 10px rgba(217,112,91,0.35); }
+  .confirm-ok.confirm-ok-neutral{ background:var(--bevel-gold); border-color:var(--marigold); color:#1B2A20; box-shadow: 0 1px 0 rgba(255,255,255,0.35) inset, 0 4px 10px rgba(232,163,61,0.35); }
   .confirm-ok:active, .confirm-cancel:active{ transform:scale(0.97); }
 
   #entry-sheet{
@@ -1073,6 +1074,26 @@
   .trash-btn.restore{ color:var(--credit); border-color:rgba(79,174,138,0.4); }
   .trash-btn.purge{ color:var(--debit); border-color:rgba(217,112,91,0.4); }
   .trash-empty{ text-align:center; color:var(--paper-faint); font-size:13px; padding:30px 0; }
+  .trash-bulk-actions{
+    display:flex;
+    gap:8px;
+    margin:0 0 14px;
+  }
+  .trash-bulk-btn{
+    flex:1;
+    font-family:'Manrope', sans-serif;
+    font-size:12.5px;
+    font-weight:700;
+    border:1px solid var(--hairline);
+    background:rgba(244,239,227,0.04);
+    padding:9px 10px;
+    border-radius:12px;
+    cursor:pointer;
+    transition: transform .1s ease;
+  }
+  .trash-bulk-btn:active{ transform:scale(0.97); }
+  .trash-bulk-btn.restore-all{ color:var(--credit); border-color:rgba(79,174,138,0.4); }
+  .trash-bulk-btn.purge-all{ color:var(--debit); border-color:rgba(217,112,91,0.4); }
 
   /* ---------- Insights sheet ---------- */
   #insights-sheet{
@@ -1711,6 +1732,10 @@
       </span>
     </div>
     <p class="trash-note">Kept for 30 days, then removed automatically.</p>
+    <div class="trash-bulk-actions" id="trash-bulk-actions" style="display:none;">
+      <button type="button" class="trash-bulk-btn restore-all" id="trash-restore-all">Restore all</button>
+      <button type="button" class="trash-bulk-btn purge-all" id="trash-purge-all">Delete all forever</button>
+    </div>
     <div id="trash-list"></div>
   </div>
 
@@ -1843,12 +1868,15 @@ const firebaseConfig = {
   // A small reusable "are you sure?" modal for destructive actions (swipe
   // delete, delete button, etc). Resolves true/false — never proceeds until
   // the user explicitly taps Delete.
-  function confirmDialog(title, msg){
+  function confirmDialog(title, msg, okLabel){
     return new Promise((resolve) => {
       $('#confirm-title').textContent = title;
       $('#confirm-msg').textContent = msg;
       const backdrop = $('#confirm-backdrop');
       const dialog = $('#confirm-dialog');
+      const okBtn = $('#confirm-ok');
+      okBtn.textContent = okLabel || 'Delete';
+      okBtn.classList.toggle('confirm-ok-neutral', !!okLabel && okLabel !== 'Delete');
       backdrop.classList.add('show');
       dialog.classList.add('show');
       function cleanup(result){
@@ -1859,7 +1887,6 @@ const firebaseConfig = {
         backdrop.removeEventListener('click', onCancel);
         resolve(result);
       }
-      const okBtn = $('#confirm-ok');
       const cancelBtn = $('#confirm-cancel');
       function onOk(){ cleanup(true); }
       function onCancel(){ cleanup(false); }
@@ -1938,7 +1965,7 @@ const firebaseConfig = {
   }
 
   $('#menu-signout').addEventListener('click', async () => {
-    const ok = await confirmDialog('Sign out of this device?', 'You can sign back in anytime.');
+    const ok = await confirmDialog('Sign out of this device?', 'You can sign back in anytime.', 'Sign out');
     if(!ok) return;
     await signOut(auth);
     closeSheet();
@@ -2010,7 +2037,8 @@ const firebaseConfig = {
     const uid = currentUser.uid;
     const ok = await confirmDialog(
       `Import ${batch.entries.length} entries?`,
-      'Adds these into your ledger. This only runs once.'
+      'Adds these into your ledger. This only runs once.',
+      'Import'
     );
     if(!ok) return;
     try{
@@ -2159,7 +2187,7 @@ const firebaseConfig = {
       const parts = [`${valid.length} new row(s) will be added.`];
       if(duplicateCount) parts.push(`${duplicateCount} already exist and will be skipped.`);
       if(invalidCount) parts.push(`${invalidCount} row(s) skipped (bad date, type, or amount).`);
-      const ok = await confirmDialog(`Import ${valid.length} entries from "${file.name}"?`, parts.join(' '));
+      const ok = await confirmDialog(`Import ${valid.length} entries from "${file.name}"?`, parts.join(' '), 'Import');
       if(!ok) return;
 
       const uid = currentUser.uid;
@@ -2642,6 +2670,11 @@ const firebaseConfig = {
     renderCategoryFilterChips();
     renderBalance();
     renderList();
+    // Keep the trash sheet in sync too — it doesn't get its own snapshot
+    // listener, so without this a purge/restore only visibly updated the
+    // list after closing and reopening the sheet (the Firestore write had
+    // actually succeeded immediately; the UI just hadn't redrawn).
+    if($('#trash-sheet').classList.contains('show')) renderTrash();
   }
 
   function renderCategoryChips(){
@@ -3299,6 +3332,7 @@ const firebaseConfig = {
   function renderTrash(){
     const list = trashedEntries();
     const wrap = $('#trash-list');
+    $('#trash-bulk-actions').style.display = list.length ? 'flex' : 'none';
     if(!list.length){
       wrap.innerHTML = '<p class="trash-empty">Nothing in the trash.</p>';
       return;
@@ -3338,6 +3372,48 @@ const firebaseConfig = {
     $('#sheet-backdrop').classList.add('show');
     $('#trash-sheet').classList.add('show');
   }
+
+  $('#trash-restore-all').addEventListener('click', async () => {
+    if(!currentUser) return;
+    const list = trashedEntries();
+    if(!list.length) return;
+    const ok = await confirmDialog(`Restore all ${list.length} entries?`, "They'll go back into your active ledger.", 'Restore');
+    if(!ok) return;
+    try{
+      const CHUNK = 400;
+      for(let i = 0; i < list.length; i += CHUNK){
+        const chunk = list.slice(i, i + CHUNK);
+        const b = writeBatch(db);
+        chunk.forEach(e => b.update(doc(entriesCol(currentUser.uid), e.id), { deleted: false, deletedAt: null, deletedBy: null }));
+        await b.commit();
+      }
+      toast(`✓ Restored ${list.length} entries`);
+    }catch(err){
+      console.error(err);
+      toast('⚠ Could not restore — check connection');
+    }
+  });
+
+  $('#trash-purge-all').addEventListener('click', async () => {
+    if(!currentUser) return;
+    const list = trashedEntries();
+    if(!list.length) return;
+    const ok = await confirmDialog(`Permanently delete all ${list.length} entries?`, 'This cannot be undone.');
+    if(!ok) return;
+    try{
+      const CHUNK = 400;
+      for(let i = 0; i < list.length; i += CHUNK){
+        const chunk = list.slice(i, i + CHUNK);
+        const b = writeBatch(db);
+        chunk.forEach(e => b.delete(doc(entriesCol(currentUser.uid), e.id)));
+        await b.commit();
+      }
+      toast(`Permanently deleted ${list.length} entries`);
+    }catch(err){
+      console.error(err);
+      toast('⚠ Could not delete — check connection');
+    }
+  });
 
   $('#menu-trash').addEventListener('click', () => { $('#menu-sheet').classList.remove('show'); openTrash(); });
   $('#trash-close').addEventListener('click', closeSheet);
@@ -3383,7 +3459,7 @@ const firebaseConfig = {
         }
       });
       row.querySelector('.purge').addEventListener('click', async () => {
-        const ok = await confirmDialog('Remove this recurring entry?', 'Past entries it already created are unaffected.');
+        const ok = await confirmDialog('Remove this recurring entry?', 'Past entries it already created are unaffected.', 'Remove');
         if(!ok) return;
         try{
           await deleteDoc(doc(recurringCol(currentUser.uid), t.id));
@@ -3472,7 +3548,7 @@ const firebaseConfig = {
     if(!currentUser) return;
     const count = activeEntries().length;
     if(!count){ toast('Nothing to clear'); return; }
-    const ok = await confirmDialog(`Move all ${count} entries to Recently Deleted?`, "You'll be able to restore them there for 30 days.");
+    const ok = await confirmDialog(`Move all ${count} entries to Recently Deleted?`, "You'll be able to restore them there for 30 days.", 'Move');
     if(!ok) return;
     try{
       const ts = Date.now();
