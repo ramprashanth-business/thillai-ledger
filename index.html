@@ -404,6 +404,7 @@
     border-radius:14px;
     margin-bottom:8px;
     overflow:hidden;
+    touch-action:pan-y;
   }
   .entry-delete-bg{
     position:absolute;
@@ -434,6 +435,9 @@
     cursor:pointer;
     position:relative;
     touch-action:pan-y;
+    -webkit-user-select:none;
+    user-select:none;
+    -webkit-touch-callout:none;
     transition: transform .15s ease, background .15s ease, box-shadow .15s ease;
     will-change:transform;
     box-shadow: var(--lift-sm);
@@ -2838,37 +2842,42 @@ const firebaseConfig = {
   // Swipe-left-to-delete: drag the card left to reveal the delete action
   // underneath, release past the threshold to snap open, tap the revealed
   // strip to confirm. A short drag or a normal tap just opens the entry.
+  //
+  // iOS Safari's Pointer Events implementation has long-standing bugs around
+  // setPointerCapture() — capture silently fails or gets dropped mid-drag,
+  // which made this swipe feel "broken" specifically on iPhone even though
+  // it worked fine elsewhere. Fix: don't rely on capture at all. Listen on
+  // `document` for move/up once a drag starts (keyed to the pointerId), so
+  // tracking keeps working regardless of what the browser does with capture.
   const SWIPE_OPEN_PX = -84;
   function wireSwipeToDelete(cardWrap, card, entry){
-    let startX = 0, startY = 0, dx = 0, dragging = false, decided = false, isHorizontal = false;
+    let startX = 0, startY = 0, dx = 0, dragging = false, decided = false, isHorizontal = false, activePointerId = null;
 
-    card.addEventListener('pointerdown', (ev) => {
-      if(ev.pointerType === 'mouse' && ev.button !== 0) return;
-      startX = ev.clientX; startY = ev.clientY; dx = 0;
-      dragging = true; decided = false; isHorizontal = false;
-      card.classList.add('dragging');
-    });
-
-    card.addEventListener('pointermove', (ev) => {
-      if(!dragging) return;
+    function onMove(ev){
+      if(!dragging || ev.pointerId !== activePointerId) return;
       const rawDx = ev.clientX - startX;
       const rawDy = ev.clientY - startY;
       if(!decided){
         if(Math.abs(rawDx) < 6 && Math.abs(rawDy) < 6) return;
         isHorizontal = Math.abs(rawDx) > Math.abs(rawDy);
         decided = true;
-        if(isHorizontal) card.setPointerCapture(ev.pointerId);
+        if(!isHorizontal){ endDrag(); return; }
       }
       if(!isHorizontal) return;
       dx = Math.min(0, Math.max(rawDx, SWIPE_OPEN_PX - 20));
       card.style.transform = `translateX(${dx}px)`;
-      ev.preventDefault();
-    });
+      if(ev.cancelable) ev.preventDefault();
+    }
 
-    function endDrag(){
+    function endDrag(ev){
       if(!dragging) return;
+      if(ev && ev.pointerId !== undefined && ev.pointerId !== activePointerId) return;
       dragging = false;
+      activePointerId = null;
       card.classList.remove('dragging');
+      document.removeEventListener('pointermove', onMove);
+      document.removeEventListener('pointerup', endDrag);
+      document.removeEventListener('pointercancel', endDrag);
       if(isHorizontal){
         if(dx <= SWIPE_OPEN_PX / 1.6){
           card.style.transform = `translateX(${SWIPE_OPEN_PX}px)`;
@@ -2880,8 +2889,17 @@ const firebaseConfig = {
       }
       isHorizontal = false; decided = false;
     }
-    card.addEventListener('pointerup', endDrag);
-    card.addEventListener('pointercancel', endDrag);
+
+    card.addEventListener('pointerdown', (ev) => {
+      if(ev.pointerType === 'mouse' && ev.button !== 0) return;
+      startX = ev.clientX; startY = ev.clientY; dx = 0;
+      dragging = true; decided = false; isHorizontal = false;
+      activePointerId = ev.pointerId;
+      card.classList.add('dragging');
+      document.addEventListener('pointermove', onMove, { passive:false });
+      document.addEventListener('pointerup', endDrag);
+      document.addEventListener('pointercancel', endDrag);
+    });
 
     cardWrap.querySelector('.entry-delete-bg').addEventListener('click', (ev) => {
       ev.stopPropagation();
