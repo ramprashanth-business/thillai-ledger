@@ -1608,6 +1608,11 @@
       Recently deleted<span class="menu-badge" id="trash-count" style="display:none;"></span>
     </div>
     <div id="menu-import-container"></div>
+    <div class="menu-item" id="menu-import-file">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6"/><path d="M9.5 15.5L12 13l2.5 2.5"/></svg>
+      Import from Excel/CSV
+    </div>
+    <input type="file" id="import-file-input" accept=".csv,.xlsx,.xls" style="display:none;">
     <div class="menu-item danger" id="menu-reset">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6"/></svg>
       Clear all data
@@ -2023,6 +2028,130 @@ const firebaseConfig = {
     }
   }
 
+  // ---------------- Import from Excel/CSV ----------------
+  // General-purpose importer: user picks any .xlsx/.xls/.csv laid out with
+  // Date / Description / Type / Amount / (optional) Category columns — see
+  // the "Thillai Ledger Import Template" — and every valid row gets written
+  // straight into their Firestore entries collection. Unlike the one-time
+  // IMPORT_BATCHES above, this can be run as many times as needed (each run
+  // is a fresh confirm, so nothing writes without the user seeing the count
+  // first).
+  let sheetJsLoadPromise = null;
+  function loadSheetJs(){
+    if(window.XLSX) return Promise.resolve(window.XLSX);
+    if(sheetJsLoadPromise) return sheetJsLoadPromise;
+    sheetJsLoadPromise = new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+      s.onload = () => resolve(window.XLSX);
+      s.onerror = () => reject(new Error('Could not load the spreadsheet reader'));
+      document.head.appendChild(s);
+    });
+    return sheetJsLoadPromise;
+  }
+
+  function normalizeHeader(h){ return String(h || '').trim().toLowerCase(); }
+
+  // Accepts DD/MM/YYYY, D/M/YYYY, YYYY-MM-DD, or an Excel date serial/Date
+  // object (SheetJS hands back real JS Dates when cellDates is on).
+  function parseImportDate(val){
+    if(val instanceof Date && !isNaN(val)) {
+      return val.getFullYear() + '-' + String(val.getMonth()+1).padStart(2,'0') + '-' + String(val.getDate()).padStart(2,'0');
+    }
+    const s = String(val || '').trim();
+    if(!s) return null;
+    let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+    if(m) return m[1] + '-' + m[2].padStart(2,'0') + '-' + m[3].padStart(2,'0');
+    m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+    if(m) return m[3] + '-' + m[2].padStart(2,'0') + '-' + m[1].padStart(2,'0');
+    return null;
+  }
+
+  function parseImportAmount(val){
+    const s = String(val || '').replace(/[₹,\s]/g, '');
+    const n = parseFloat(s);
+    return isFinite(n) ? Math.abs(n) : null;
+  }
+
+  async function handleImportFile(ev){
+    const file = ev.target.files[0];
+    ev.target.value = '';
+    if(!file) return;
+    $('#menu-sheet').classList.remove('show');
+    $('#sheet-backdrop').classList.remove('show');
+    toast('Reading file…');
+    try{
+      const XLSX = await loadSheetJs();
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(buf, { type: 'array', cellDates: true });
+      const sheetName = wb.SheetNames.find(n => n.toLowerCase() !== 'how to fill this in') || wb.SheetNames[0];
+      const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { defval: '' });
+      if(!rows.length){ toast('⚠ No rows found in that file'); return; }
+
+      // Map whatever header names/casing they used to our fields.
+      const sample = rows[0];
+      const keyMap = {};
+      Object.keys(sample).forEach(k => {
+        const nk = normalizeHeader(k);
+        if(nk === 'date') keyMap.date = k;
+        else if(nk === 'description' || nk === 'desc') keyMap.desc = k;
+        else if(nk === 'type') keyMap.type = k;
+        else if(nk === 'amount' || nk.startsWith('amount')) keyMap.amount = k;
+        else if(nk === 'category') keyMap.category = k;
+      });
+      if(!keyMap.date || !keyMap.desc || !keyMap.type || !keyMap.amount){
+        toast('⚠ File needs Date, Description, Type and Amount columns');
+        return;
+      }
+
+      const valid = [];
+      let skipped = 0;
+      rows.forEach(r => {
+        const date = parseImportDate(r[keyMap.date]);
+        const desc = String(r[keyMap.desc] || '').trim();
+        const typeRaw = String(r[keyMap.type] || '').trim().toLowerCase();
+        const type = typeRaw === 'credit' ? 'Credit' : typeRaw === 'debit' ? 'Debit' : null;
+        const amount = parseImportAmount(r[keyMap.amount]);
+        const category = keyMap.category ? String(r[keyMap.category] || '').trim() : '';
+        if(!date || !desc || !type || amount === null || amount <= 0){ skipped++; return; }
+        valid.push({ date, desc, type, amount, category });
+      });
+
+      if(!valid.length){
+        toast('⚠ No valid rows — check the Date/Type/Amount format');
+        return;
+      }
+
+      const msg = skipped
+        ? `${valid.length} valid rows found, ${skipped} row(s) skipped (bad date, type, or amount).`
+        : `${valid.length} valid rows found.`;
+      const ok = await confirmDialog(`Import ${valid.length} entries from "${file.name}"?`, msg);
+      if(!ok) return;
+
+      const uid = currentUser.uid;
+      const baseOrder = entries.length;
+      const CHUNK = 400; // stay under Firestore's 500-write batch limit
+      let written = 0;
+      for(let i = 0; i < valid.length; i += CHUNK){
+        const chunk = valid.slice(i, i + CHUNK);
+        const b = writeBatch(db);
+        chunk.forEach((e, j) => {
+          const ref = doc(entriesCol(uid));
+          b.set(ref, { desc: e.desc, amount: e.amount, date: e.date, type: e.type, order: baseOrder + i + j, category: e.category });
+        });
+        await b.commit();
+        written += chunk.length;
+      }
+      toast(`✓ Imported ${written} entries from Excel/CSV`);
+    }catch(e){
+      console.error('File import failed', e);
+      toast('⚠ Could not read that file — check it matches the template format');
+    }
+  }
+  $('#menu-import-file').addEventListener('click', () => $('#import-file-input').click());
+  $('#import-file-input').addEventListener('change', handleImportFile);
+
+
   async function seedIfEmpty(uid){
     // Entries live only in Firestore (per-user, under users/{uid}/entries) —
     // there is no auto-run demo/seed data in the app anymore. This just
@@ -2184,6 +2313,28 @@ const firebaseConfig = {
     return list;
   }
 
+  // Net Balance for a given month has to be the running cash position as of
+  // the end of that month — everything earned/spent in every month up to
+  // and including it — not just that month's own credit-minus-debit. A
+  // month can look "negative" in isolation purely because the cash it's
+  // spending was deposited the month before; the actual balance carries
+  // forward, so the displayed net must too. "All time" already covers every
+  // entry, so it needs no cutoff.
+  function cumulativeNetThroughMonth(m){
+    let cutoff = null;
+    if(m !== 'All'){
+      const [y, mo] = m.split('-').map(Number);
+      const lastDay = new Date(y, mo, 0).getDate(); // day 0 of next month = last day of this month
+      cutoff = m + '-' + String(lastDay).padStart(2, '0');
+    }
+    let net = 0;
+    activeEntries().forEach(e => {
+      if(cutoff !== null && e.date > cutoff) return;
+      net += (e.type === 'Credit' ? e.amount : -e.amount);
+    });
+    return net;
+  }
+
   function filteredForList(){
     let list = sortedEntries();
     if(activeMonth !== 'All') list = list.filter(e => monthKey(e.date) === activeMonth);
@@ -2200,7 +2351,9 @@ const firebaseConfig = {
     const all = filteredForBalance();
     let credit = 0, debit = 0;
     all.forEach(e => { if(e.type === 'Credit') credit += e.amount; else debit += e.amount; });
-    const net = credit - debit;
+    // IN/OUT stay scoped to the selected month, but the headline Net Balance
+    // is the running total carried through the end of that month.
+    const net = cumulativeNetThroughMonth(activeMonth);
 
     $('#total-credit').textContent = fmtMoney(credit);
     $('#total-debit').textContent = fmtMoney(debit);
