@@ -123,7 +123,7 @@
     background:rgba(244,239,227,0.03);
     color:var(--paper-dim);
     cursor:pointer;
-    transition: all 0.2s ease;
+    transition: all 0.28s cubic-bezier(.34,1.56,.64,1);
     white-space:nowrap;
   }
   .month-tab.active{
@@ -143,10 +143,11 @@
     z-index:0;
     pointer-events:none;
     background:
-      radial-gradient(circle at 20% 20%, rgba(232,163,61,0.22) 0%, transparent 40%),
-      radial-gradient(circle at 80% 15%, rgba(79,174,138,0.22) 0%, transparent 42%),
-      radial-gradient(circle at 30% 85%, rgba(201,122,43,0.18) 0%, transparent 40%),
-      radial-gradient(circle at 85% 80%, rgba(244,190,95,0.16) 0%, transparent 42%);
+      radial-gradient(circle at 20% 20%, rgba(232,163,61,0.24) 0%, transparent 40%),
+      radial-gradient(circle at 80% 15%, rgba(79,174,138,0.24) 0%, transparent 42%),
+      radial-gradient(circle at 30% 85%, rgba(201,122,43,0.19) 0%, transparent 40%),
+      radial-gradient(circle at 85% 80%, rgba(244,190,95,0.18) 0%, transparent 42%),
+      radial-gradient(circle at 55% 50%, rgba(154,94,166,0.10) 0%, transparent 46%);
     filter: blur(40px);
     animation: aurora-drift 18s ease-in-out infinite alternate;
   }
@@ -157,6 +158,34 @@
   }
   @media (prefers-reduced-motion: reduce){
     body::before{ animation:none; }
+  }
+
+  /* ---------- First-paint entrance choreography ---------- */
+  /* Each top-level section fades/rises in with a small stagger so the app
+     feels composed rather than dumped on screen all at once. Driven purely
+     by animation-delay per element — no JS orchestration needed. */
+  @keyframes section-rise{
+    from{ opacity:0; transform:translateY(14px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+  .app-entrance header.hero,
+  .app-entrance .month-tabs,
+  .app-entrance .balance-wrap,
+  .app-entrance .toolbar,
+  .app-entrance #entries-list{
+    animation: section-rise .55s cubic-bezier(.22,1,.36,1) both;
+  }
+  .app-entrance header.hero{ animation-delay: .02s; }
+  .app-entrance .month-tabs{ animation-delay: .08s; }
+  .app-entrance .balance-wrap{ animation-delay: .14s; }
+  .app-entrance .toolbar{ animation-delay: .22s; }
+  .app-entrance #entries-list{ animation-delay: .28s; }
+  @media (prefers-reduced-motion: reduce){
+    .app-entrance header.hero,
+    .app-entrance .month-tabs,
+    .app-entrance .balance-wrap,
+    .app-entrance .toolbar,
+    .app-entrance #entries-list{ animation:none; }
   }
 
   .balance-wrap{ padding: 14px 22px 6px; position:relative; }
@@ -708,6 +737,23 @@
   }
   .save-btn:active{ transform:translateY(2px) scale(0.99); box-shadow: inset 0 3px 8px rgba(0,0,0,0.3); }
   .save-btn:disabled{ opacity:0.5; }
+  .save-btn.save-success{
+    background: linear-gradient(155deg, #7fd6ae, var(--credit)) !important;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    opacity:1 !important;
+    animation: save-success-pop .38s cubic-bezier(.34,1.56,.64,1);
+  }
+  .save-btn.save-success svg{
+    stroke-dasharray:30;
+    stroke-dashoffset:30;
+    animation: save-check-draw .32s ease-out .05s forwards;
+  }
+  @keyframes save-success-pop{
+    0%{ transform:scale(1); }
+    45%{ transform:scale(1.035); }
+    100%{ transform:scale(1); }
+  }
+  @keyframes save-check-draw{ to{ stroke-dashoffset:0; } }
   .save-btn-highlight{ animation: save-btn-pulse 0.7s ease-in-out 3; }
   @keyframes save-btn-pulse{
     0%, 100%{ box-shadow: 0 0 0 0 rgba(232,163,61,0.6); }
@@ -749,16 +795,16 @@
     padding:10px 18px;
     border-radius:100px;
     box-shadow:0 8px 24px rgba(0,0,0,0.3);
-    animation: toast-in .3s ease, toast-out .3s ease 2.2s forwards;
+    animation: toast-in .35s cubic-bezier(.34,1.56,.64,1), toast-out .3s ease 2.2s forwards;
     display:flex;
     align-items:center;
     gap:8px;
   }
-  @keyframes toast-in{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
+  @keyframes toast-in{ from{opacity:0; transform:translateY(14px) scale(0.94);} to{opacity:1; transform:translateY(0) scale(1);} }
   @keyframes toast-out{ from{opacity:1;} to{opacity:0; transform:translateY(-6px);} }
   .toast.toast-action{
     pointer-events:auto;
-    animation: toast-in .3s ease, toast-out .3s ease 4.6s forwards;
+    animation: toast-in .35s cubic-bezier(.34,1.56,.64,1), toast-out .3s ease 4.6s forwards;
   }
   .toast-undo{
     border:none;
@@ -1902,6 +1948,11 @@ const firebaseConfig = {
       currentUser = user;
       $('#auth-screen').style.display = 'none';
       $('#app').style.display = 'block';
+      $('#app').classList.add('app-entrance');
+      // Only play the entrance choreography once per sign-in, not on every
+      // Firestore snapshot re-render — otherwise every keystroke/save would
+      // replay the fade-in.
+      setTimeout(() => $('#app').classList.remove('app-entrance'), 900);
       startLedgerSync(user.uid);
     } else {
       currentUser = null;
@@ -2882,6 +2933,8 @@ const firebaseConfig = {
     editingId = entry ? entry.id : null;
     activeType = entry ? entry.type : 'Debit';
 
+    $('#save-btn').classList.remove('save-success');
+    $('#save-btn').innerHTML = 'Save Entry';
     $('#sheet-title-text').textContent = entry ? 'Edit Entry' : 'New Entry';
     $('#f-desc').value = entry ? entry.desc : '';
     $('#f-category').value = entry ? (entry.category || '') : '';
@@ -2951,6 +3004,16 @@ const firebaseConfig = {
       updateTypeToggle();
     });
   });
+
+  // Quick success flash on the Save button — checkmark draws in, button
+  // pulses — before the sheet closes, so saving *feels* confirmed instead of
+  // just silently vanishing into a toast.
+  async function flashSaveSuccess(){
+    const btn = $('#save-btn');
+    btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg> Saved';
+    btn.classList.add('save-success');
+    await new Promise(r => setTimeout(r, 420));
+  }
 
   async function saveEntry(){
     if(!currentUser) return;
@@ -3031,6 +3094,7 @@ const firebaseConfig = {
         }
         toast('✓ Entry saved');
       }
+      await flashSaveSuccess();
       closeSheet();
     }catch(e){
       console.error(e);
