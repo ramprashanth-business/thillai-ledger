@@ -403,26 +403,7 @@
     position:relative;
     border-radius:14px;
     margin-bottom:8px;
-    overflow:hidden;
-    touch-action:pan-y;
   }
-  .entry-delete-bg{
-    position:absolute;
-    inset:0;
-    background: linear-gradient(90deg, transparent 0%, var(--debit) 55%);
-    border-radius:14px;
-    display:flex;
-    align-items:center;
-    justify-content:flex-end;
-    padding-right:18px;
-    color:#fff;
-    gap:6px;
-    font-size:11.5px;
-    font-weight:700;
-    font-family:'IBM Plex Mono', monospace;
-    cursor:pointer;
-  }
-  .entry-delete-bg svg{ flex:0 0 auto; }
   .entry-card{
     display:flex;
     align-items:center;
@@ -434,15 +415,22 @@
     margin-bottom:0;
     cursor:pointer;
     position:relative;
-    touch-action:pan-y;
-    -webkit-user-select:none;
-    user-select:none;
-    -webkit-touch-callout:none;
     transition: transform .15s ease, background .15s ease, box-shadow .15s ease;
     will-change:transform;
     box-shadow: var(--lift-sm);
   }
-  .entry-card.dragging{ transition:none; }
+  .entry-delete-btn{
+    flex:0 0 auto;
+    width:32px; height:32px;
+    border-radius:9px;
+    border:1px solid var(--hairline);
+    background:rgba(217,112,91,0.08);
+    color:var(--debit);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    transition: transform .1s ease, background .1s ease;
+  }
+  .entry-delete-btn:active{ transform:scale(0.9); background:rgba(217,112,91,0.2); }
   .type-bar{
     width:3px;
     align-self:stretch;
@@ -1758,7 +1746,11 @@ const firebaseConfig = {
 
   let entries = [];
   let activeFilter = 'All';
-  let activeMonth = 'All';
+  // Defaults to the current calendar month (not "All time").
+  let activeMonth = monthKeyFor(new Date());
+  function monthKeyFor(d){
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+  }
   let activeCategoryFilter = 'All';
   let searchTerm = '';
   let editingId = null;
@@ -2130,6 +2122,10 @@ const firebaseConfig = {
   }
   function getMonths(){
     const set = new Set(activeEntries().map(e => monthKey(e.date)).filter(Boolean));
+    // Always include the current calendar month, even with zero entries yet,
+    // so "this month" is always a selectable/default tab, not just months
+    // that already happen to have data in them.
+    set.add(monthKeyFor(new Date()));
     return Array.from(set).sort();
   }
   function dateLabel(dateStr){
@@ -2160,7 +2156,11 @@ const firebaseConfig = {
     });
   }
 
-  function filteredForBalance(){ return sortedEntries(); }
+  function filteredForBalance(){
+    let list = sortedEntries();
+    if(activeMonth !== 'All') list = list.filter(e => monthKey(e.date) === activeMonth);
+    return list;
+  }
 
   function filteredForList(){
     let list = sortedEntries();
@@ -2259,11 +2259,6 @@ const firebaseConfig = {
       dayEntries.slice().reverse().forEach((e, i) => {
         const cardWrap = document.createElement('div');
         cardWrap.className = 'entry-card-wrap' + (selectMode ? ' select-mode' : '');
-        cardWrap.innerHTML = `
-          <div class="entry-delete-bg">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6"/></svg>
-            Delete
-          </div>`;
         const card = document.createElement('div');
         card.className = 'entry-card' + (selectedIds.has(e.id) ? ' checked' : '');
         card.style.animationDelay = (i * 0.03) + 's';
@@ -2276,15 +2271,21 @@ const firebaseConfig = {
             <div class="entry-sub">${e.type === 'Credit' ? 'Received' : 'Paid'}${(e.category && e.category.trim()) ? '<span class="entry-cat" style="color:' + categoryColor(e.category) + '">' + escapeHtml(e.category.trim()) + '</span>' : ''}</div>
           </div>
           <div class="entry-amt ${e.type}">${e.type === 'Credit' ? '+' : '−'}${fmtMoney(e.amount)}</div>
+          ${selectMode ? '' : `<div class="entry-delete-btn" title="Delete entry">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6"/></svg>
+          </div>`}
         `;
         if(selectMode){
           card.onclick = () => toggleSelect(e.id, card);
           card.querySelector('.entry-check').onclick = (ev) => { ev.stopPropagation(); toggleSelect(e.id, card); };
         } else {
-          card.onclick = () => { if(!cardWrap.dataset.swiped) openSheet(e); };
+          card.onclick = () => openSheet(e);
+          card.querySelector('.entry-delete-btn').addEventListener('click', (ev) => {
+            ev.stopPropagation();
+            deleteEntryById(e.id);
+          });
         }
         cardWrap.appendChild(card);
-        if(!selectMode) wireSwipeToDelete(cardWrap, card, e);
         group.appendChild(cardWrap);
         requestAnimationFrame(() => card.classList.add('revealed'));
       });
@@ -2813,19 +2814,10 @@ const firebaseConfig = {
     }
   }
 
-  async function deleteEntryById(id, cardWrap){
+  async function deleteEntryById(id){
     if(!currentUser) return;
-    // Swiping left only reveals the delete strip — tapping it still asks for
-    // confirmation before anything is actually removed, so a swipe (or a
-    // stray tap on the revealed strip) can never delete by accident.
     const ok = await confirmDialog('Delete this entry?', 'This can be undone from Trash for 30 days.');
-    if(!ok){
-      if(cardWrap){
-        cardWrap.querySelector('.entry-card').style.transform = 'translateX(0)';
-        delete cardWrap.dataset.swiped;
-      }
-      return;
-    }
+    if(!ok) return;
     try{
       await softDelete(id);
       toast('🗑 Entry deleted', '', { label: 'UNDO', onClick: () => restoreEntry(id) });
@@ -2833,78 +2825,6 @@ const firebaseConfig = {
       console.error(e);
       toast('⚠ Could not delete — check connection');
     }
-    if(cardWrap){
-      cardWrap.querySelector('.entry-card').style.transform = 'translateX(0)';
-      delete cardWrap.dataset.swiped;
-    }
-  }
-
-  // Swipe-left-to-delete: drag the card left to reveal the delete action
-  // underneath, release past the threshold to snap open, tap the revealed
-  // strip to confirm. A short drag or a normal tap just opens the entry.
-  //
-  // iOS Safari's Pointer Events implementation has long-standing bugs around
-  // setPointerCapture() — capture silently fails or gets dropped mid-drag,
-  // which made this swipe feel "broken" specifically on iPhone even though
-  // it worked fine elsewhere. Fix: don't rely on capture at all. Listen on
-  // `document` for move/up once a drag starts (keyed to the pointerId), so
-  // tracking keeps working regardless of what the browser does with capture.
-  const SWIPE_OPEN_PX = -84;
-  function wireSwipeToDelete(cardWrap, card, entry){
-    let startX = 0, startY = 0, dx = 0, dragging = false, decided = false, isHorizontal = false, activePointerId = null;
-
-    function onMove(ev){
-      if(!dragging || ev.pointerId !== activePointerId) return;
-      const rawDx = ev.clientX - startX;
-      const rawDy = ev.clientY - startY;
-      if(!decided){
-        if(Math.abs(rawDx) < 6 && Math.abs(rawDy) < 6) return;
-        isHorizontal = Math.abs(rawDx) > Math.abs(rawDy);
-        decided = true;
-        if(!isHorizontal){ endDrag(); return; }
-      }
-      if(!isHorizontal) return;
-      dx = Math.min(0, Math.max(rawDx, SWIPE_OPEN_PX - 20));
-      card.style.transform = `translateX(${dx}px)`;
-      if(ev.cancelable) ev.preventDefault();
-    }
-
-    function endDrag(ev){
-      if(!dragging) return;
-      if(ev && ev.pointerId !== undefined && ev.pointerId !== activePointerId) return;
-      dragging = false;
-      activePointerId = null;
-      card.classList.remove('dragging');
-      document.removeEventListener('pointermove', onMove);
-      document.removeEventListener('pointerup', endDrag);
-      document.removeEventListener('pointercancel', endDrag);
-      if(isHorizontal){
-        if(dx <= SWIPE_OPEN_PX / 1.6){
-          card.style.transform = `translateX(${SWIPE_OPEN_PX}px)`;
-          cardWrap.dataset.swiped = '1';
-        } else {
-          card.style.transform = 'translateX(0)';
-          delete cardWrap.dataset.swiped;
-        }
-      }
-      isHorizontal = false; decided = false;
-    }
-
-    card.addEventListener('pointerdown', (ev) => {
-      if(ev.pointerType === 'mouse' && ev.button !== 0) return;
-      startX = ev.clientX; startY = ev.clientY; dx = 0;
-      dragging = true; decided = false; isHorizontal = false;
-      activePointerId = ev.pointerId;
-      card.classList.add('dragging');
-      document.addEventListener('pointermove', onMove, { passive:false });
-      document.addEventListener('pointerup', endDrag);
-      document.addEventListener('pointercancel', endDrag);
-    });
-
-    cardWrap.querySelector('.entry-delete-bg').addEventListener('click', (ev) => {
-      ev.stopPropagation();
-      deleteEntryById(entry.id, cardWrap);
-    });
   }
 
   // ---------------- CSV export ----------------
