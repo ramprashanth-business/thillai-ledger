@@ -260,7 +260,16 @@
   .as-of{
     font-size:12px;
     color:var(--paper-faint);
+    margin:0 0 4px;
+  }
+  .opening-line{
+    font-size:12px;
+    color:var(--marigold-hi);
     margin:0 0 18px;
+    font-weight:600;
+    display:flex;
+    align-items:center;
+    gap:5px;
   }
   .balance-split{
     display:flex;
@@ -1442,6 +1451,7 @@
       </p>
       <div class="net-amount" id="net-amount"><span class="cur">₹</span><span id="net-amount-val">0</span></div>
       <p class="as-of" id="as-of">—</p>
+      <p class="opening-line" id="opening-line" style="display:none;"></p>
       <div class="balance-split">
         <div class="split-item credit">
           <p class="lbl"><span class="dot credit"></span>In</p>
@@ -2073,6 +2083,13 @@ const firebaseConfig = {
     return isFinite(n) ? Math.abs(n) : null;
   }
 
+  // A simple content signature (date + description + type + amount) used to
+  // detect rows that already exist in the ledger, so importing the same
+  // file (or overlapping data) twice never creates duplicate entries.
+  function entrySignature(date, desc, type, amount){
+    return date + '|' + String(desc).trim().toLowerCase() + '|' + type + '|' + Math.round(amount * 100);
+  }
+
   async function handleImportFile(ev){
     const file = ev.target.files[0];
     ev.target.value = '';
@@ -2104,8 +2121,18 @@ const firebaseConfig = {
         return;
       }
 
+      // Every entry already in this account (active + trashed — a trashed
+      // entry still "existed", so it shouldn't come back via import) gets a
+      // signature, so rows matching something already here are skipped
+      // rather than duplicated. The same check also runs against rows
+      // already accepted from this file, in case the sheet itself has
+      // repeated lines.
+      const existingSigs = new Set(entries.map(e => entrySignature(e.date, e.desc, e.type, e.amount)));
+      const seenInFile = new Set();
+
       const valid = [];
-      let skipped = 0;
+      let invalidCount = 0;
+      let duplicateCount = 0;
       rows.forEach(r => {
         const date = parseImportDate(r[keyMap.date]);
         const desc = String(r[keyMap.desc] || '').trim();
@@ -2113,19 +2140,26 @@ const firebaseConfig = {
         const type = typeRaw === 'credit' ? 'Credit' : typeRaw === 'debit' ? 'Debit' : null;
         const amount = parseImportAmount(r[keyMap.amount]);
         const category = keyMap.category ? String(r[keyMap.category] || '').trim() : '';
-        if(!date || !desc || !type || amount === null || amount <= 0){ skipped++; return; }
+        if(!date || !desc || !type || amount === null || amount <= 0){ invalidCount++; return; }
+        const sig = entrySignature(date, desc, type, amount);
+        if(existingSigs.has(sig) || seenInFile.has(sig)){ duplicateCount++; return; }
+        seenInFile.add(sig);
         valid.push({ date, desc, type, amount, category });
       });
 
       if(!valid.length){
-        toast('⚠ No valid rows — check the Date/Type/Amount format');
+        if(duplicateCount && !invalidCount){
+          toast(`Already in your ledger — all ${duplicateCount} row(s) matched existing entries`);
+        } else {
+          toast('⚠ No new valid rows — check the Date/Type/Amount format');
+        }
         return;
       }
 
-      const msg = skipped
-        ? `${valid.length} valid rows found, ${skipped} row(s) skipped (bad date, type, or amount).`
-        : `${valid.length} valid rows found.`;
-      const ok = await confirmDialog(`Import ${valid.length} entries from "${file.name}"?`, msg);
+      const parts = [`${valid.length} new row(s) will be added.`];
+      if(duplicateCount) parts.push(`${duplicateCount} already exist and will be skipped.`);
+      if(invalidCount) parts.push(`${invalidCount} row(s) skipped (bad date, type, or amount).`);
+      const ok = await confirmDialog(`Import ${valid.length} entries from "${file.name}"?`, parts.join(' '));
       if(!ok) return;
 
       const uid = currentUser.uid;
@@ -2142,7 +2176,8 @@ const firebaseConfig = {
         await b.commit();
         written += chunk.length;
       }
-      toast(`✓ Imported ${written} entries from Excel/CSV`);
+      const skippedNote = duplicateCount ? ` (${duplicateCount} duplicate row${duplicateCount === 1 ? '' : 's'} skipped)` : '';
+      toast(`✓ Imported ${written} entries from Excel/CSV${skippedNote}`);
     }catch(e){
       console.error('File import failed', e);
       toast('⚠ Could not read that file — check it matches the template format');
@@ -2347,6 +2382,18 @@ const firebaseConfig = {
     return list;
   }
 
+  // The balance carried in from before the selected month started — shown
+  // explicitly so "why is June's number what it is" is never a mystery.
+  // Deliberately NOT shown for "All time" (there's nothing before it).
+  function openingBalanceForMonth(m){
+    const [y, mo] = m.split('-').map(Number);
+    const prevLastDate = new Date(y, mo - 1, 0); // day 0 of this month = last day of previous month
+    const cutoff = prevLastDate.getFullYear() + '-' + String(prevLastDate.getMonth()+1).padStart(2,'0') + '-' + String(prevLastDate.getDate()).padStart(2,'0');
+    let net = 0;
+    activeEntries().forEach(e => { if(e.date <= cutoff) net += (e.type === 'Credit' ? e.amount : -e.amount); });
+    return net;
+  }
+
   function renderBalance(){
     const all = filteredForBalance();
     let credit = 0, debit = 0;
@@ -2368,6 +2415,15 @@ const firebaseConfig = {
       $('#as-of').textContent = 'As of ' + dateLabel(last.date) + ' · ' + all.length + ' entries';
     } else {
       $('#as-of').textContent = 'No entries yet';
+    }
+
+    const openingEl = $('#opening-line');
+    if(activeMonth !== 'All'){
+      const opening = openingBalanceForMonth(activeMonth);
+      openingEl.style.display = 'flex';
+      openingEl.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8l4 4-4 4M3 12h18"/></svg> Carried in from before: ${opening < 0 ? '−' : ''}₹${fmtMoneyPlain(Math.abs(opening))}`;
+    } else {
+      openingEl.style.display = 'none';
     }
   }
 
