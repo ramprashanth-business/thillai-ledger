@@ -1120,6 +1120,114 @@
   .trash-btn.restore{ color:var(--credit); border-color:rgba(79,174,138,0.4); }
   .trash-btn.purge{ color:var(--debit); border-color:rgba(217,112,91,0.4); }
   .trash-empty{ text-align:center; color:var(--paper-faint); font-size:13px; padding:30px 0; }
+
+  /* ---------- Client balances sheet ---------- */
+  #clients-sheet{
+    position:fixed;
+    left:50%; bottom:0;
+    transform:translate(-50%, 100%);
+    width:100%; max-width:460px;
+    background:var(--ink-2);
+    border-radius:24px 24px 0 0;
+    border:1px solid var(--hairline);
+    border-bottom:none;
+    padding:10px 22px 30px;
+    z-index:52;
+    transition: transform .32s cubic-bezier(.32,.72,0,1);
+    max-height:86vh;
+    overflow-y:auto;
+  }
+  #clients-sheet.show{ transform:translate(-50%, 0); }
+  .client-form{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin:6px 0 16px;
+    padding:14px;
+    border-radius:14px;
+    background:rgba(244,239,227,0.04);
+    border:1px solid var(--hairline);
+  }
+  .client-form .field{ flex:1 1 130px; margin:0; }
+  .client-form-actions{ display:flex; gap:8px; width:100%; }
+  .client-form-actions .save-btn{ margin:0; flex:1; }
+  .client-form-actions .trash-btn{ flex:0 0 auto; align-self:center; }
+  .client-item{ align-items:flex-start; }
+  .client-name{ font-size:13.5px; font-weight:700; color:var(--paper); }
+  .client-phone{ font-size:11px; color:var(--paper-faint); margin-top:1px; }
+  .client-balance-row{ display:flex; gap:12px; margin-top:6px; font-size:11px; color:var(--paper-dim); }
+  .client-balance-row b{ color:var(--paper); font-family:'IBM Plex Mono', monospace; }
+  .client-outstanding{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    font-weight:700;
+    flex:0 0 auto;
+    text-align:right;
+  }
+  .client-outstanding.due{ color:var(--debit); }
+  .client-outstanding.clear{ color:var(--credit); }
+  .client-actions{ display:flex; flex-direction:column; gap:6px; align-items:flex-end; }
+  .client-actions .trash-actions{ margin-top:4px; }
+  .trash-btn.whatsapp{ color:#3FBF6A; border-color:rgba(63,191,106,0.4); }
+
+  /* ---------- Share / export polish ---------- */
+  .pdf-filter-row{ margin:0 0 16px; }
+  .pdf-filter-row label{
+    display:block;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10.5px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:var(--paper-faint);
+    margin-bottom:6px;
+  }
+  .pdf-filter-row select{
+    width:100%;
+    font-family:'Manrope', sans-serif;
+    font-size:14px;
+    color:var(--paper);
+    background:rgba(244,239,227,0.05);
+    border:1px solid var(--hairline);
+    border-radius:12px;
+    padding:11px 12px;
+  }
+  .pdf-export-actions{ display:flex; flex-direction:column; gap:10px; }
+  .whatsapp-btn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    width:100%;
+    font-family:'Manrope', sans-serif;
+    font-size:14.5px;
+    font-weight:700;
+    padding:13px;
+    border-radius:100px;
+    border:1px solid rgba(63,191,106,0.4);
+    background:rgba(63,191,106,0.12);
+    color:#3FBF6A;
+    cursor:pointer;
+  }
+  .whatsapp-btn:active{ transform:translateY(1px); }
+  .insights-share-row{ display:flex; justify-content:flex-end; margin:-4px 0 8px; }
+  .insights-share-btn{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    font-weight:600;
+    color:var(--marigold-hi);
+    background:none;
+    border:1px solid var(--hairline);
+    border-radius:100px;
+    padding:6px 12px;
+    cursor:pointer;
+  }
+  .entry-client-tag{
+    font-size:10.5px;
+    font-weight:600;
+    color:var(--paper-dim);
+    margin-left:6px;
+  }
+  .entry-client-tag::before{ content:'👤 '; }
   .trash-bulk-actions{
     display:flex;
     gap:8px;
@@ -1540,7 +1648,7 @@
     <div class="icon-btn" id="select-btn" title="Select entries">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
     </div>
-    <div class="icon-btn" id="export-btn" title="Export CSV">
+    <div class="icon-btn" id="export-btn" title="Export Excel">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
     </div>
   </div>
@@ -1560,7 +1668,7 @@
   <div id="bulk-bar">
     <span id="bulk-count">0 selected</span>
     <div class="bulk-actions">
-      <button type="button" class="bulk-btn" id="bulk-export">Export CSV</button>
+      <button type="button" class="bulk-btn" id="bulk-export">Export Excel</button>
       <button type="button" class="bulk-btn danger" id="bulk-delete">Delete</button>
       <button type="button" class="bulk-btn" id="bulk-cancel">Cancel</button>
     </div>
@@ -1620,6 +1728,12 @@
       <div class="category-chips" id="category-chips"></div>
     </div>
 
+    <div class="field">
+      <label>Client (optional)</label>
+      <input type="text" id="f-client" placeholder="e.g. Gopinath — for outstanding tracking" list="client-datalist" autocomplete="off">
+      <datalist id="client-datalist"></datalist>
+    </div>
+
     <div class="field amount-field">
       <label>Amount</label>
       <span class="rupee">₹</span>
@@ -1674,7 +1788,11 @@
     </div>
     <div class="menu-item" id="menu-export">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
-      Export all entries (CSV)
+      Export all entries (Excel)
+    </div>
+    <div class="menu-item" id="menu-clients">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+      Client balances
     </div>
     <div class="menu-item" id="menu-recurring">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 014-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>
@@ -1707,6 +1825,10 @@
       <span class="close-x" id="insights-close">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
       </span>
+    </div>
+
+    <div class="insights-share-row">
+      <button type="button" class="insights-share-btn" id="insights-share-month">📤 Share this month's summary</button>
     </div>
 
     <div class="insights-tabs">
@@ -1754,7 +1876,38 @@
         <input type="date" id="pdf-to">
       </div>
     </div>
-    <button class="save-btn" id="pdf-generate">Generate PDF</button>
+    <div class="pdf-filter-row">
+      <label>Client (optional)</label>
+      <select id="pdf-client-filter"><option value="">All clients / entries</option></select>
+    </div>
+    <div class="pdf-export-actions">
+      <button class="save-btn" id="pdf-generate">Generate PDF</button>
+      <button type="button" class="whatsapp-btn" id="pdf-whatsapp">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M17.6 6.32A8.86 8.86 0 0012.03 4a8.94 8.94 0 00-7.75 13.4L3 21l3.7-1.24a8.9 8.9 0 004.33 1.1h.01A8.94 8.94 0 0017.6 6.32zM12.04 19.4a7.4 7.4 0 01-3.78-1.04l-.27-.16-2.5.83.83-2.44-.18-.28a7.44 7.44 0 1113.87-3.9 7.4 7.4 0 01-7.97 6.99zm4.08-5.56c-.22-.11-1.31-.65-1.51-.72-.2-.08-.35-.11-.5.11-.15.22-.57.72-.7.87-.13.15-.26.16-.48.05-.22-.11-.94-.35-1.79-1.12-.66-.6-1.11-1.33-1.24-1.55-.13-.22-.01-.34.1-.45.1-.1.22-.26.33-.39.11-.13.15-.22.22-.37.07-.15.04-.28-.02-.39-.06-.11-.5-1.22-.69-1.67-.18-.44-.36-.38-.5-.38l-.42-.01c-.15 0-.39.06-.59.28-.2.22-.77.76-.77 1.85s.79 2.15.9 2.3c.11.15 1.56 2.42 3.79 3.39.53.23.94.37 1.26.47.53.17 1.01.14 1.39.09.42-.06 1.31-.53 1.5-1.05.18-.51.18-.95.13-1.05-.06-.1-.2-.16-.42-.27z"/></svg>
+        Share via WhatsApp
+      </button>
+    </div>
+  </div>
+
+  <div id="clients-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">
+      <span>Client balances</span>
+      <span class="close-x" id="clients-close">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </span>
+    </div>
+    <p class="trash-note">Set an expected total per client, tag their Credit entries with that client's name on the ＋ screen, and see what's still outstanding.</p>
+    <div class="client-form">
+      <div class="field"><label>Client name</label><input type="text" id="cf-name" placeholder="e.g. Gopinath"></div>
+      <div class="field"><label>Expected total ₹</label><input type="number" id="cf-expected" placeholder="e.g. 250000" inputmode="decimal"></div>
+      <div class="field"><label>WhatsApp number (optional)</label><input type="text" id="cf-phone" placeholder="e.g. 9876543210"></div>
+      <div class="client-form-actions">
+        <button type="button" class="save-btn" id="cf-save">Add client</button>
+        <button type="button" class="trash-btn purge" id="cf-cancel" style="display:none;">Cancel edit</button>
+      </div>
+    </div>
+    <div id="clients-list"></div>
   </div>
 
   <div id="recurring-sheet">
@@ -1843,6 +1996,8 @@ const firebaseConfig = {
   let isSignUpMode = false;
   let insightsCatType = 'Debit';
   let recurringTemplates = [];
+  let clients = [];
+  let editingClientId = null;
   let selectMode = false;
   let selectedIds = new Set();
   let pendingReceiptFile = null;
@@ -2033,6 +2188,10 @@ const firebaseConfig = {
   // auto-generate a real entry once each month, instead of the user retyping
   // rent/salaries every time.
   function recurringCol(uid){ return collection(db, 'users', uid, 'recurring'); }
+  // Clients: a name plus (optionally) an expected total for the job/event and
+  // a WhatsApp number. Outstanding = expectedTotal - sum of Credit entries
+  // whose `client` field matches this client's name.
+  function clientsCol(uid){ return collection(db, 'users', uid, 'clients'); }
 
   // ---------------- One-time legacy import ----------------
   // This is the July 2026 cash-ledger data that used to be hardcoded in the
@@ -2137,6 +2296,23 @@ const firebaseConfig = {
       document.head.appendChild(s);
     });
     return sheetJsLoadPromise;
+  }
+
+  // Styled Excel export (colored header, currency formatting, totals row)
+  // uses ExcelJS instead of SheetJS's free tier, which can't write cell
+  // styling — only ExcelJS's open-source build supports that for real .xlsx.
+  let excelJsLoadPromise = null;
+  function loadExcelJs(){
+    if(window.ExcelJS) return Promise.resolve(window.ExcelJS);
+    if(excelJsLoadPromise) return excelJsLoadPromise;
+    excelJsLoadPromise = new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js';
+      s.onload = () => resolve(window.ExcelJS);
+      s.onerror = () => reject(new Error('Could not load the spreadsheet writer'));
+      document.head.appendChild(s);
+    });
+    return excelJsLoadPromise;
   }
 
   function normalizeHeader(h){ return String(h || '').trim().toLowerCase(); }
@@ -2291,6 +2467,12 @@ const firebaseConfig = {
       updateRecurringBadge();
     }catch(e){
       console.error('Recurring load/process failed', e);
+    }
+    try{
+      const csnap = await getDocs(clientsCol(uid));
+      clients = csnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    }catch(e){
+      console.error('Clients load failed', e);
     }
     if(unsubscribeSnapshot) unsubscribeSnapshot();
     unsubscribeSnapshot = onSnapshot(query(entriesCol(uid)), (snap) => {
@@ -2578,7 +2760,7 @@ const firebaseConfig = {
           <div class="entry-icon ${e.type}">${e.type === 'Credit' ? CREDIT_ICON : DEBIT_ICON}</div>
           <div class="entry-mid">
             <div class="entry-desc">${escapeHtml(e.desc)}${e.receiptUrl ? '<span class="entry-receipt-badge" title="Has receipt photo">📎</span>' : ''}</div>
-            <div class="entry-sub">${e.type === 'Credit' ? 'Received' : 'Paid'}${(e.category && e.category.trim()) ? '<span class="entry-cat" style="color:' + categoryColor(e.category) + '">' + escapeHtml(e.category.trim()) + '</span>' : ''}</div>
+            <div class="entry-sub">${e.type === 'Credit' ? 'Received' : 'Paid'}${(e.category && e.category.trim()) ? '<span class="entry-cat" style="color:' + categoryColor(e.category) + '">' + escapeHtml(e.category.trim()) + '</span>' : ''}${(e.client && e.client.trim()) ? '<span class="entry-client-tag">' + escapeHtml(e.client.trim()) + '</span>' : ''}</div>
           </div>
           <div class="entry-amt ${e.type}">${e.type === 'Credit' ? '+' : '−'}${fmtMoney(e.amount)}</div>
           ${selectMode ? '' : `<div class="entry-delete-btn" title="Delete entry">
@@ -2672,22 +2854,7 @@ const firebaseConfig = {
   $('#bulk-export').addEventListener('click', () => {
     if(!selectedIds.size) return;
     const list = sortedEntries().filter(e => selectedIds.has(e.id));
-    const rows = [['Date','Description','Category','Type','Amount']];
-    list.forEach(e => rows.push([e.date, e.desc, e.category || '', e.type, e.amount]));
-    const csv = rows.map(r => r.map(v => {
-      const s = String(v).replace(/"/g,'""');
-      return /[",\n]/.test(s) ? `"${s}"` : s;
-    }).join(',')).join('\n');
-    const blob = new Blob([csv], { type:'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'thillai-decors-selected-' + new Date().toISOString().slice(0,10) + '.csv';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-    toast('📄 CSV downloaded');
+    exportExcel(list, 'selected');
   });
 
   function renderCategoryFilterChips(){
@@ -2817,6 +2984,19 @@ const firebaseConfig = {
 
   $('#f-desc').addEventListener('change', () => applyDescMatch($('#f-desc').value));
 
+  // ---------------- Client suggestions ----------------
+  function renderClientDatalist(){
+    const dl = $('#client-datalist');
+    dl.innerHTML = '';
+    const names = new Set(clients.map(c => c.name));
+    activeEntries().forEach(e => { if(e.client) names.add(e.client); });
+    Array.from(names).sort((a,b) => a.localeCompare(b)).forEach(n => {
+      const opt = document.createElement('option');
+      opt.value = n;
+      dl.appendChild(opt);
+    });
+  }
+
   // ---------------- Sheet (add/edit) ----------------
   // ---------------- Receipt photos ----------------
   // Downscaled + re-encoded client-side before upload so a phone photo
@@ -2938,6 +3118,8 @@ const firebaseConfig = {
     $('#sheet-title-text').textContent = entry ? 'Edit Entry' : 'New Entry';
     $('#f-desc').value = entry ? entry.desc : '';
     $('#f-category').value = entry ? (entry.category || '') : '';
+    $('#f-client').value = entry ? (entry.client || '') : '';
+    renderClientDatalist();
     $('#f-amount').value = entry ? entry.amount : '';
     $('#f-date').value = entry ? entry.date : new Date().toISOString().slice(0,10);
     $('#delete-btn').style.display = entry ? 'block' : 'none';
@@ -2989,6 +3171,7 @@ const firebaseConfig = {
     $('#trash-sheet').classList.remove('show');
     $('#recurring-sheet').classList.remove('show');
     $('#pdf-sheet').classList.remove('show');
+    $('#clients-sheet').classList.remove('show');
     editingId = null;
   }
 
@@ -3019,6 +3202,7 @@ const firebaseConfig = {
     if(!currentUser) return;
     const desc = $('#f-desc').value.trim();
     const category = $('#f-category').value.trim();
+    const client = $('#f-client').value.trim();
     const amount = parseFloat($('#f-amount').value);
     const date = $('#f-date').value;
 
@@ -3044,7 +3228,7 @@ const firebaseConfig = {
           }
         }
         await updateDoc(doc(entriesCol(currentUser.uid), editingId), {
-          desc, amount, date, type: activeType, category,
+          desc, amount, date, type: activeType, category, client,
           updatedAt: Date.now(), updatedBy: currentUser.email || null
         });
         if(pendingReceiptFile){
@@ -3067,7 +3251,7 @@ const firebaseConfig = {
         }
         toast('✓ Entry updated');
       } else {
-        const ref = await addDoc(entriesCol(currentUser.uid), { desc, amount, date, type: activeType, category, order: entries.length });
+        const ref = await addDoc(entriesCol(currentUser.uid), { desc, amount, date, type: activeType, category, client, order: entries.length });
         if($('#f-recurring').checked){
           try{
             const day = parseInt(date.slice(8,10), 10);
@@ -3155,72 +3339,163 @@ const firebaseConfig = {
     }
   }
 
-  // ---------------- CSV export ----------------
-  function exportCsv(){
-    const rows = [['Date','Description','Category','Type','Amount']];
-    sortedEntries().forEach(e => rows.push([e.date, e.desc, e.category || '', e.type, e.amount]));
-    const csv = rows.map(r => r.map(v => {
-      const s = String(v).replace(/"/g,'""');
-      return /[",\n]/.test(s) ? `"${s}"` : s;
-    }).join(',')).join('\n');
-    const blob = new Blob([csv], { type:'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'thillai-decors-ledger-' + new Date().toISOString().slice(0,10) + '.csv';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-    toast('📄 CSV downloaded');
+  // ---------------- Excel export ----------------
+  // Builds a properly formatted .xlsx (branded header row, ₹ number format,
+  // a bold totals row, frozen header, autofilter) instead of a bare CSV that
+  // opens in Excel with no styling at all.
+  const INK = 'FF173F3A', MARIGOLD = 'FFE8A33D', PAPER = 'FFF4EFE3';
+  async function exportExcel(list, filenameSuffix){
+    if(!list.length){ toast('Nothing to export'); return; }
+    try{
+      const ExcelJS = await loadExcelJs();
+      const wb = new ExcelJS.Workbook();
+      wb.creator = 'Thillai Decors & Events';
+      wb.created = new Date();
+      const ws = wb.addWorksheet('Ledger', { views: [{ state: 'frozen', ySplit: 3 }] });
+
+      ws.mergeCells('A1:F1');
+      const titleCell = ws.getCell('A1');
+      titleCell.value = 'Thillai Decors & Events — Cash Ledger';
+      titleCell.font = { bold: true, size: 14, color: { argb: INK } };
+      titleCell.alignment = { vertical: 'middle' };
+      ws.getRow(1).height = 24;
+
+      ws.mergeCells('A2:F2');
+      const subCell = ws.getCell('A2');
+      subCell.value = `Exported ${new Date().toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' })} · ${list.length} entries`;
+      subCell.font = { italic: true, size: 10, color: { argb: 'FF666666' } };
+
+      const headerRowIdx = 3;
+      const headers = ['Date', 'Description', 'Client', 'Category', 'Type', 'Amount (₹)'];
+      const headerRow = ws.getRow(headerRowIdx);
+      headerRow.values = headers;
+      headerRow.eachCell(cell => {
+        cell.font = { bold: true, color: { argb: PAPER } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: MARIGOLD } };
+        cell.alignment = { vertical: 'middle', horizontal: 'left' };
+        cell.border = { bottom: { style: 'thin', color: { argb: 'FFC97A2B' } } };
+      });
+      headerRow.height = 20;
+
+      let credit = 0, debit = 0;
+      list.forEach((e, i) => {
+        const row = ws.addRow([
+          dateLabel(e.date), e.desc, e.client || '', e.category || '', e.type,
+          e.type === 'Credit' ? e.amount : -e.amount
+        ]);
+        const amtCell = row.getCell(6);
+        amtCell.numFmt = '₹#,##0;[Red]-₹#,##0';
+        amtCell.font = { color: { argb: e.type === 'Credit' ? 'FF1A7A3C' : 'FFB3261E' }, bold: true };
+        if(i % 2){ row.eachCell(c => { c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFAF8F2' } }; }); }
+        if(e.type === 'Credit') credit += e.amount; else debit += e.amount;
+      });
+
+      const totalsRow = ws.addRow(['', '', '', '', 'Net Balance', credit - debit]);
+      totalsRow.font = { bold: true };
+      totalsRow.getCell(6).numFmt = '₹#,##0;[Red]-₹#,##0';
+      totalsRow.getCell(6).font = { bold: true, color: { argb: (credit - debit) >= 0 ? 'FF1A7A3C' : 'FFB3261E' } };
+      totalsRow.eachCell(cell => { cell.border = { top: { style: 'thin', color: { argb: 'FFC9C2AC' } } }; });
+
+      ws.columns = [
+        { width: 13 }, { width: 32 }, { width: 18 }, { width: 20 }, { width: 10 }, { width: 15 }
+      ];
+      ws.autoFilter = { from: { row: headerRowIdx, column: 1 }, to: { row: headerRowIdx, column: 6 } };
+
+      const buf = await wb.xlsx.writeBuffer();
+      const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `thillai-decors-${filenameSuffix || 'ledger'}-${new Date().toISOString().slice(0,10)}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      toast('📊 Excel file downloaded');
+    }catch(e){
+      console.error('Excel export failed', e);
+      toast('⚠ Could not build the Excel file — check connection');
+    }
   }
 
   // ---------------- PDF export ----------------
-  function exportPdf(fromDate, toDate){
+  // Applies the export sheet's date range + optional client filter to a copy
+  // of the ledger, and builds the shared period/title labels used by the
+  // PDF, Excel and WhatsApp summary outputs so the three stay consistent.
+  function filteredExportEntries(fromDate, toDate, clientName){
     let list = sortedEntries();
     if(fromDate) list = list.filter(e => e.date >= fromDate);
     if(toDate) list = list.filter(e => e.date <= toDate);
-    if(!list.length){ toast('No entries in that range'); return; }
+    if(clientName) list = list.filter(e => (e.client || '').trim().toLowerCase() === clientName.trim().toLowerCase());
+    return list;
+  }
+
+  function exportTotals(list){
     let credit = 0, debit = 0;
     list.forEach(e => { if(e.type === 'Credit') credit += e.amount; else debit += e.amount; });
-    const net = credit - debit;
-    const rowsHtml = list.map(e => `
-      <tr>
-        <td>${escapeHtml(e.date)}</td>
-        <td>${escapeHtml(e.desc)}</td>
-        <td>${escapeHtml(e.category || '—')}</td>
-        <td class="type-${e.type.toLowerCase()}">${escapeHtml(e.type)}</td>
-        <td class="amt">${e.type === 'Credit' ? '+' : '-'}₹${fmtMoneyPlain(e.amount)}</td>
-      </tr>`).join('');
-    const periodLabel = (fromDate || toDate)
+    return { credit, debit, net: credit - debit };
+  }
+
+  function periodLabelFor(fromDate, toDate){
+    return (fromDate || toDate)
       ? `${fromDate ? dateLabel(fromDate) : 'Start'} – ${toDate ? dateLabel(toDate) : 'Today'}`
       : 'All time';
+  }
+
+  function exportPdf(fromDate, toDate, clientName){
+    const list = filteredExportEntries(fromDate, toDate, clientName);
+    if(!list.length){ toast('No entries in that range'); return; }
+    const { credit, debit, net } = exportTotals(list);
+    const periodLabel = periodLabelFor(fromDate, toDate);
+    const rowsHtml = list.map((e, i) => `
+      <tr class="${i % 2 ? 'alt' : ''}">
+        <td>${escapeHtml(dateLabel(e.date))}</td>
+        <td>${escapeHtml(e.desc)}${e.client ? `<div class="row-client">👤 ${escapeHtml(e.client)}</div>` : ''}</td>
+        <td>${escapeHtml(e.category || '—')}</td>
+        <td class="type-${e.type.toLowerCase()}"><span class="type-pill ${e.type.toLowerCase()}">${escapeHtml(e.type)}</span></td>
+        <td class="amt ${e.type.toLowerCase()}">${e.type === 'Credit' ? '+' : '−'}₹${fmtMoneyPlain(e.amount)}</td>
+      </tr>`).join('');
     const html = `<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
 <title>Thillai Decors & Events — Cash Ledger Statement</title>
 <style>
-  body{ font-family: Arial, Helvetica, sans-serif; color:#111; padding:0; margin:0; }
-  .letterhead{ background:#1B2A20; color:#F4EFE3; padding:26px 28px 20px; }
-  .letterhead .brand{ font-size:20px; font-weight:bold; letter-spacing:0.01em; }
+  @page{ margin:16mm 14mm; }
+  *{ box-sizing:border-box; }
+  body{ font-family: 'Segoe UI', Arial, Helvetica, sans-serif; color:#1B2A20; padding:0; margin:0; background:#fff; }
+  .letterhead{
+    background: linear-gradient(135deg, #173F3A 0%, #0F2E2C 100%);
+    color:#F4EFE3; padding:30px 32px 24px; position:relative; overflow:hidden;
+  }
+  .letterhead::after{ content:''; position:absolute; right:-40px; top:-40px; width:160px; height:160px; border-radius:50%; background:rgba(232,163,61,0.15); }
+  .letterhead .brand{ font-size:23px; font-weight:700; letter-spacing:0.01em; position:relative; }
   .letterhead .brand em{ font-style:italic; color:#E8A33D; }
-  .letterhead .tag{ font-size:11px; color:#cfc9ba; margin-top:2px; }
-  .body-pad{ padding:22px 28px 28px; }
-  h1{ font-size:15px; margin:0 0 2px; }
-  .sub{ color:#666; font-size:11.5px; margin-bottom:18px; }
-  .summary{ display:flex; gap:20px; margin-bottom:20px; }
-  .summary div{ border:1px solid #ddd; border-radius:8px; padding:10px 16px; flex:1; }
-  .summary .label{ font-size:10.5px; color:#666; text-transform:uppercase; letter-spacing:0.04em; }
-  .summary .val{ font-size:16px; font-weight:bold; }
-  table{ width:100%; border-collapse:collapse; font-size:11.5px; }
-  th, td{ text-align:left; padding:7px 8px; border-bottom:1px solid #eee; }
-  th{ background:#f5f5f5; font-size:10.5px; text-transform:uppercase; letter-spacing:0.03em; }
-  td.amt{ text-align:right; font-weight:bold; }
-  td.type-credit{ color:#1a7a3c; }
-  td.type-debit{ color:#b3261e; }
-  .footer{ margin-top:24px; padding-top:14px; border-top:1px solid #ddd; font-size:10.5px; color:#888; display:flex; justify-content:space-between; }
-  @media print{ .letterhead{ background:#1B2A20 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; } body{ padding:8px; } }
+  .letterhead .tag{ font-size:11.5px; color:#cfc9ba; margin-top:3px; letter-spacing:0.04em; text-transform:uppercase; position:relative; }
+  .accent-bar{ height:4px; background: linear-gradient(90deg, #E8A33D, #C97A2B, #4FAE8A); }
+  .body-pad{ padding:26px 32px 30px; }
+  h1{ font-size:16.5px; margin:0 0 3px; color:#0F2E2C; }
+  .sub{ color:#767066; font-size:11px; margin-bottom:22px; }
+  .summary{ display:flex; gap:14px; margin-bottom:24px; }
+  .summary div{ border:1px solid #e8e2d3; border-radius:12px; padding:14px 16px; flex:1; background:#FAF8F2; }
+  .summary .label{ font-size:10px; color:#8a8272; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:4px; }
+  .summary .val{ font-size:18px; font-weight:700; }
+  table{ width:100%; border-collapse:collapse; font-size:11px; }
+  th{ background:#173F3A; color:#F4EFE3; font-size:9.5px; text-transform:uppercase; letter-spacing:0.05em; text-align:left; padding:9px 10px; }
+  th:last-child{ text-align:right; }
+  td{ text-align:left; padding:8px 10px; border-bottom:1px solid #efece2; vertical-align:top; }
+  tr.alt td{ background:#FAF8F2; }
+  .row-client{ font-size:9.5px; color:#8a8272; margin-top:1px; }
+  .type-pill{ display:inline-block; padding:2px 8px; border-radius:100px; font-size:9.5px; font-weight:700; }
+  .type-pill.credit{ background:rgba(79,174,138,0.15); color:#1a7a3c; }
+  .type-pill.debit{ background:rgba(217,112,91,0.15); color:#b3261e; }
+  td.amt{ text-align:right; font-weight:700; font-variant-numeric:tabular-nums; }
+  td.amt.credit{ color:#1a7a3c; }
+  td.amt.debit{ color:#b3261e; }
+  .footer{ margin-top:30px; padding-top:16px; border-top:1px solid #e8e2d3; font-size:10px; color:#9a9384; }
+  .sign-row{ display:flex; justify-content:space-between; margin-top:36px; }
+  .sign-box{ width:42%; border-top:1px solid #bdb6a4; padding-top:6px; font-size:10px; color:#767066; }
+  @media print{ .letterhead{ -webkit-print-color-adjust:exact; print-color-adjust:exact; } th{ -webkit-print-color-adjust:exact; print-color-adjust:exact; } }
 </style>
 </head>
 <body>
@@ -3228,22 +3503,24 @@ const firebaseConfig = {
     <div class="brand">Thillai <em>Decors</em> &amp; Events</div>
     <div class="tag">Cash Ledger Statement</div>
   </div>
+  <div class="accent-bar"></div>
   <div class="body-pad">
-    <h1>Statement — ${escapeHtml(periodLabel)}</h1>
-    <div class="sub">Generated ${escapeHtml(new Date().toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }))} · ${list.length} entries · Prepared by ${escapeHtml((currentUser && currentUser.email) || 'ledger user')}</div>
+    <h1>Statement — ${escapeHtml(periodLabel)}${clientName ? ' · ' + escapeHtml(clientName) : ''}</h1>
+    <div class="sub">Generated ${escapeHtml(new Date().toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }))} · ${list.length} ${list.length === 1 ? 'entry' : 'entries'} · Prepared by ${escapeHtml((currentUser && currentUser.email) || 'ledger user')}</div>
     <div class="summary">
       <div><div class="label">Total Credit</div><div class="val" style="color:#1a7a3c;">₹${fmtMoneyPlain(credit)}</div></div>
       <div><div class="label">Total Debit</div><div class="val" style="color:#b3261e;">₹${fmtMoneyPlain(debit)}</div></div>
-      <div><div class="label">Net Balance</div><div class="val">₹${fmtMoneyPlain(net)}</div></div>
+      <div><div class="label">Net Balance</div><div class="val" style="color:${net >= 0 ? '#1a7a3c' : '#b3261e'};">₹${fmtMoneyPlain(net)}</div></div>
     </div>
     <table>
-      <thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Type</th><th style="text-align:right;">Amount</th></tr></thead>
+      <thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Type</th><th>Amount</th></tr></thead>
       <tbody>${rowsHtml}</tbody>
     </table>
-    <div class="footer">
-      <span>Thillai Decors &amp; Events — Cash Ledger</span>
-      <span>System-generated statement</span>
+    <div class="sign-row">
+      <div class="sign-box">Prepared by</div>
+      <div class="sign-box">Received / Verified by</div>
     </div>
+    <div class="footer">Thillai Decors &amp; Events — Cash Ledger · System-generated statement</div>
   </div>
 </body>
 </html>`;
@@ -3256,8 +3533,38 @@ const firebaseConfig = {
     toast('📄 Opening print preview…');
   }
 
+  function statementSummaryText(fromDate, toDate, clientName){
+    const list = filteredExportEntries(fromDate, toDate, clientName);
+    if(!list.length) return null;
+    const { credit, debit, net } = exportTotals(list);
+    const period = periodLabelFor(fromDate, toDate);
+    const lines = [
+      `*Thillai Decors & Events — Cash Ledger*`,
+      clientName ? `Client: ${clientName}` : null,
+      `Period: ${period}`,
+      `Entries: ${list.length}`,
+      `Total Credit: ₹${fmtMoneyPlain(credit)}`,
+      `Total Debit: ₹${fmtMoneyPlain(debit)}`,
+      `Net Balance: ₹${fmtMoneyPlain(net)}`
+    ].filter(Boolean);
+    return lines.join('\n');
+  }
+
   // ---------------- PDF export range picker ----------------
   let pdfRangeMode = 'all';
+  function populatePdfClientFilter(){
+    const sel = $('#pdf-client-filter');
+    const current = sel.value;
+    sel.innerHTML = '<option value="">All clients / entries</option>';
+    const names = new Set(clients.map(c => c.name));
+    activeEntries().forEach(e => { if(e.client) names.add(e.client); });
+    Array.from(names).sort((a,b) => a.localeCompare(b)).forEach(n => {
+      const opt = document.createElement('option');
+      opt.value = n; opt.textContent = n;
+      sel.appendChild(opt);
+    });
+    if(Array.from(sel.options).some(o => o.value === current)) sel.value = current;
+  }
   function openPdfSheet(){
     pdfRangeMode = 'all';
     $$('.pdf-range-chips .chip').forEach(c => c.classList.toggle('active', c.dataset.range === 'all'));
@@ -3265,6 +3572,7 @@ const firebaseConfig = {
     const today = new Date().toISOString().slice(0,10);
     $('#pdf-from').value = today;
     $('#pdf-to').value = today;
+    populatePdfClientFilter();
     $('#sheet-backdrop').classList.add('show');
     $('#pdf-sheet').classList.add('show');
   }
@@ -3276,7 +3584,8 @@ const firebaseConfig = {
     });
   });
   $('#pdf-close').addEventListener('click', closeSheet);
-  $('#pdf-generate').addEventListener('click', () => {
+
+  function currentPdfRange(){
     let from = null, to = null;
     if(pdfRangeMode === 'month'){
       const now = new Date();
@@ -3285,10 +3594,25 @@ const firebaseConfig = {
     } else if(pdfRangeMode === 'custom'){
       from = $('#pdf-from').value || null;
       to = $('#pdf-to').value || null;
-      if(from && to && from > to){ toast('⚠ "From" date is after "To" date'); return; }
+      if(from && to && from > to){ toast('⚠ "From" date is after "To" date'); return null; }
     }
+    return { from, to, client: $('#pdf-client-filter').value || '' };
+  }
+
+  $('#pdf-generate').addEventListener('click', () => {
+    const range = currentPdfRange();
+    if(!range) return;
     closeSheet();
-    exportPdf(from, to);
+    exportPdf(range.from, range.to, range.client);
+  });
+
+  $('#pdf-whatsapp').addEventListener('click', () => {
+    const range = currentPdfRange();
+    if(!range) return;
+    const text = statementSummaryText(range.from, range.to, range.client);
+    if(!text){ toast('No entries in that range'); return; }
+    closeSheet();
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   });
 
   // ---------------- Insights: charts ----------------
@@ -3549,6 +3873,143 @@ const firebaseConfig = {
   $('#menu-recurring').addEventListener('click', () => { $('#menu-sheet').classList.remove('show'); openRecurring(); });
   $('#recurring-close').addEventListener('click', closeSheet);
 
+  // ---------------- Client balances ----------------
+  function clientReceived(name){
+    const key = name.trim().toLowerCase();
+    return activeEntries()
+      .filter(e => e.type === 'Credit' && (e.client || '').trim().toLowerCase() === key)
+      .reduce((s, e) => s + e.amount, 0);
+  }
+
+  function computeClientBalances(){
+    return clients.map(c => {
+      const received = clientReceived(c.name);
+      const expected = Number(c.expectedTotal) || 0;
+      const outstanding = expected - received;
+      return { ...c, received, expected, outstanding };
+    }).sort((a, b) => b.outstanding - a.outstanding);
+  }
+
+  function waLink(phone, text){
+    const digits = (phone || '').replace(/\D/g, '');
+    const withCountry = digits && digits.length === 10 ? '91' + digits : digits;
+    return withCountry
+      ? `https://wa.me/${withCountry}?text=${encodeURIComponent(text)}`
+      : `https://wa.me/?text=${encodeURIComponent(text)}`;
+  }
+
+  function renderClients(){
+    const wrap = $('#clients-list');
+    const list = computeClientBalances();
+    if(!list.length){
+      wrap.innerHTML = '<p class="trash-empty">No clients added yet. Add one above to start tracking outstanding balances.</p>';
+      return;
+    }
+    wrap.innerHTML = '';
+    list.forEach(c => {
+      const row = document.createElement('div');
+      row.className = 'trash-item client-item';
+      const dueClass = c.outstanding > 0 ? 'due' : 'clear';
+      const dueLabel = c.expected > 0
+        ? (c.outstanding > 0 ? fmtMoney(c.outstanding) + ' due' : 'Fully paid')
+        : '—';
+      row.innerHTML = `
+        <div class="trash-mid">
+          <div class="client-name">${escapeHtml(c.name)}</div>
+          ${c.phone ? `<div class="client-phone">📱 ${escapeHtml(c.phone)}</div>` : ''}
+          <div class="client-balance-row">
+            <span>Received <b>${fmtMoney(c.received)}</b></span>
+            ${c.expected > 0 ? `<span>Expected <b>${fmtMoney(c.expected)}</b></span>` : ''}
+          </div>
+        </div>
+        <div class="client-actions">
+          <div class="client-outstanding ${dueClass}">${dueLabel}</div>
+          <div class="trash-actions">
+            <button type="button" class="trash-btn whatsapp" data-act="remind">WhatsApp</button>
+            <button type="button" class="trash-btn restore" data-act="edit">Edit</button>
+            <button type="button" class="trash-btn purge" data-act="delete">Delete</button>
+          </div>
+        </div>`;
+      row.querySelector('[data-act="remind"]').addEventListener('click', () => {
+        const msg = c.outstanding > 0
+          ? `Hi ${c.name}, this is a friendly reminder from Thillai Decors & Events — your outstanding balance is ₹${fmtMoneyPlain(c.outstanding)}. Please let us know a convenient time to settle it. Thank you!`
+          : `Hi ${c.name}, this is Thillai Decors & Events — thank you, your account is fully settled!`;
+        window.open(waLink(c.phone, msg), '_blank');
+      });
+      row.querySelector('[data-act="edit"]').addEventListener('click', () => {
+        editingClientId = c.id;
+        $('#cf-name').value = c.name;
+        $('#cf-expected').value = c.expected || '';
+        $('#cf-phone').value = c.phone || '';
+        $('#cf-save').textContent = 'Save changes';
+        $('#cf-cancel').style.display = 'inline-block';
+        $('#cf-name').focus();
+      });
+      row.querySelector('[data-act="delete"]').addEventListener('click', async () => {
+        const ok = await confirmDialog(`Remove ${c.name} from client list?`, 'Their past entries stay in the ledger, only the client record and outstanding tracking are removed.', 'Remove');
+        if(!ok) return;
+        try{
+          await deleteDoc(doc(clientsCol(currentUser.uid), c.id));
+          clients = clients.filter(x => x.id !== c.id);
+          renderClients();
+          toast('Removed');
+        }catch(e){
+          console.error(e);
+          toast('⚠ Could not remove — check connection');
+        }
+      });
+      wrap.appendChild(row);
+    });
+  }
+
+  function resetClientForm(){
+    editingClientId = null;
+    $('#cf-name').value = '';
+    $('#cf-expected').value = '';
+    $('#cf-phone').value = '';
+    $('#cf-save').textContent = 'Add client';
+    $('#cf-cancel').style.display = 'none';
+  }
+
+  $('#cf-cancel').addEventListener('click', resetClientForm);
+
+  $('#cf-save').addEventListener('click', async () => {
+    if(!currentUser) return;
+    const name = $('#cf-name').value.trim();
+    const expectedTotal = parseFloat($('#cf-expected').value) || 0;
+    const phone = $('#cf-phone').value.trim();
+    if(!name){ toast('⚠ Enter a client name'); $('#cf-name').focus(); return; }
+    try{
+      if(editingClientId){
+        await updateDoc(doc(clientsCol(currentUser.uid), editingClientId), { name, expectedTotal, phone });
+        const c = clients.find(x => x.id === editingClientId);
+        if(c){ c.name = name; c.expectedTotal = expectedTotal; c.phone = phone; }
+        toast('✓ Client updated');
+      } else {
+        const ref = await addDoc(clientsCol(currentUser.uid), { name, expectedTotal, phone, createdAt: Date.now() });
+        clients.push({ id: ref.id, name, expectedTotal, phone, createdAt: Date.now() });
+        toast('✓ Client added');
+      }
+      resetClientForm();
+      renderClients();
+      renderClientDatalist();
+      populatePdfClientFilter();
+    }catch(e){
+      console.error(e);
+      toast('⚠ Could not save client — check connection');
+    }
+  });
+
+  function openClients(){
+    resetClientForm();
+    renderClients();
+    $('#sheet-backdrop').classList.add('show');
+    $('#clients-sheet').classList.add('show');
+  }
+
+  $('#menu-clients').addEventListener('click', () => { $('#menu-sheet').classList.remove('show'); openClients(); });
+  $('#clients-close').addEventListener('click', closeSheet);
+
   function openInsights(){
     renderCategoryChart();
     renderTrendChart();
@@ -3569,6 +4030,14 @@ const firebaseConfig = {
     renderCategoryChart();
   });
   $('#insights-close').addEventListener('click', closeSheet);
+  $('#insights-share-month').addEventListener('click', () => {
+    const now = new Date();
+    const from = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
+    const to = new Date().toISOString().slice(0,10);
+    const text = statementSummaryText(from, to, '');
+    if(!text){ toast('No entries yet this month'); return; }
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+  });
   $('#menu-insights').addEventListener('click', () => { $('#menu-sheet').classList.remove('show'); openInsights(); });
 
   // ---------------- Wire up ----------------
@@ -3605,8 +4074,8 @@ const firebaseConfig = {
       panel.innerHTML = '<p class="history-empty">Could not load history.</p>';
     }
   });
-  $('#export-btn').addEventListener('click', exportCsv);
-  $('#menu-export').addEventListener('click', () => { exportCsv(); closeSheet(); });
+  $('#export-btn').addEventListener('click', () => exportExcel(sortedEntries(), 'ledger'));
+  $('#menu-export').addEventListener('click', () => { exportExcel(sortedEntries(), 'ledger'); closeSheet(); });
   $('#menu-pdf').addEventListener('click', () => { $('#menu-sheet').classList.remove('show'); openPdfSheet(); });
   $('#menu-reset').addEventListener('click', async () => {
     if(!currentUser) return;
